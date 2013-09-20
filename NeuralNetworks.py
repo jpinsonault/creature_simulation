@@ -43,7 +43,10 @@ class MultiNN:
         print(self.networks[nn_index])
 
     def compute_all_networks(self):
-        for index, network in enumerate(self.networks):
+        # for index, network in enumerate(self.networks):
+        #     self.compute_network(index)
+
+        for index in range(self.num_networks):
             self.compute_network(index)
 
     def compute_network(self, nn_index):
