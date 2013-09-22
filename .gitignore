@@ -1,5 +1,8 @@
 *.py[cod]
 
+# Cython c files
+*.c
+
 # C extensions
 *.so
 
