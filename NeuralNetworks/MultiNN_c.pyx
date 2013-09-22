@@ -11,7 +11,7 @@ ctypedef np.float_t NP_FLOAT_t
 cdef class MultiNN_c:
     '''
     A cython version of NeuralNetorks.py
-    MultiNN holds a collection of Neural Networks' weight and biases.
+    MultiNN holds a collection of Neural Networks' weights and biases.
     All the NNs have to have the same shape
     '''
 
@@ -45,10 +45,16 @@ cdef class MultiNN_c:
         self.networks = (self.networks - .5) * (limit * 2)
 
     def set_inputs(self, nn_index, inputs):
-        if inputs.shape != (self.num_networks, self.num_inputs):
+        if inputs.shape != (self.num_inputs):
             raise Exception("Shape of inputs doesn't match")
 
         self.networks[nn_index] = inputs
+
+    def set_all_inputs(self, inputs):
+        if inputs.shape != (self.num_networks, self.num_inputs):
+            raise Exception("Shape of inputs doesn't match")
+
+        self.networks = inputs
 
     def get_networks(self):
         return self.networks

@@ -4,7 +4,7 @@ from math import tanh
 
 class MultiNN:
     '''
-    MultiNN holds a collection of Neural Networks' weight and biases.
+    MultiNN holds a collection of Neural Networks' weights and biases.
     All the NNs have to have the same shape
     '''
     def __init__(self, num_networks, num_inputs, num_hidden, num_outputs):
@@ -26,10 +26,16 @@ class MultiNN:
         self.networks = (self.networks - .5) * (limit * 2)
 
     def set_inputs(self, nn_index, inputs):
-        if inputs.shape != (self.num_networks, self.num_inputs):
+        if inputs.shape != (self.num_inputs):
             raise Exception("Shape of inputs doesn't match")
 
         self.networks[nn_index] = inputs
+
+    def set_all_inputs(self, inputs):
+        if inputs.shape != (self.num_networks, self.num_inputs):
+            raise Exception("Shape of inputs doesn't match")
+
+        self.networks = inputs
 
     def get_networks(self):
         return self.networks

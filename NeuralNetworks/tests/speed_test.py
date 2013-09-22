@@ -34,3 +34,5 @@ end_time = time()
 cython_time = end_time - start_time
 print("Cython Execution time: {}s".format(cython_time))
 print("Improvement: {}%".format((python_time/cython_time-1)*100))
+
+print(nn.get_networks().shape)

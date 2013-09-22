@@ -8,3 +8,8 @@ setup(
     ext_modules=[Extension("MultiNN_c", ["MultiNN_c.pyx"])],
     include_dirs=[numpy.get_include()]
 )
+
+print("""
+	############
+	# Success! #
+	############""")

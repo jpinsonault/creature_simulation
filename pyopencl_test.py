@@ -45,15 +45,15 @@ for platform in cl.get_platforms():
             __kernel void sum(__global const float *a,
             __global const float *b, __global float *c)
             {
-                        int loop;
-                        int gid = get_global_id(0);
-                        for(loop=0; loop<%s;loop++)
-                        {
-                                c[gid] = a[gid] + b[gid];
-                                c[gid] = c[gid] * (a[gid] + b[gid]);
-                                c[gid] = c[gid] * (a[gid] / 2);
-                        }
+                int loop;
+                int gid = get_global_id(0);
+                for(loop=0; loop<%s;loop++)
+                {
+                    c[gid] = a[gid] + b[gid];
+                    c[gid] = c[gid] * (a[gid] + b[gid]);
+                    c[gid] = c[gid] * (a[gid] / 2);
                 }
+            }
                 """ % (zz)).build()
 
         exec_evt = prg.sum(queue, a.shape, None, a_buf, b_buf, dest_buf)
