@@ -1,7 +1,7 @@
 import sys
-from NeuralNetworks import MultiNN
-sys.path.insert(0, './cython_test')
-from NeuralNetworks_c import MultiNN as MultiNN_c
+sys.path.insert(0, '../../')
+from NeuralNetworks.MultiNN_c import MultiNN_c
+from NeuralNetworks.MultiNN import MultiNN
 from time import time
 
 num_networks = 10000
