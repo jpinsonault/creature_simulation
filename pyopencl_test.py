@@ -1,15 +1,15 @@
 import pyopencl as cl
 import numpy
 from time import time
-zz=100
-a = numpy.random.rand(zz).astype(numpy.float32)
-b = numpy.random.rand(zz).astype(numpy.float32)
+num_iterations=100
+a = numpy.random.rand(num_iterations).astype(numpy.float32)
+b = numpy.random.rand(num_iterations).astype(numpy.float32)
 c_result = numpy.empty_like(a)
 
 # Speed in normal CPU usage
 time1 = time()
-for i in range(zz):
-        for j in range(zz):
+for i in range(num_iterations):
+        for j in range(num_iterations):
                 c_result[i] = a[i] + b[i]
                 c_result[i] = c_result[i] * (a[i] + b[i])
                 c_result[i] = c_result[i] * (a[i] / 2)
@@ -54,8 +54,9 @@ for platform in cl.get_platforms():
                     c[gid] = c[gid] * (a[gid] / 2);
                 }
             }
-                """ % (zz)).build()
+                """ % (num_iterations)).build()
 
+        print("a.shape: {}".format(a.shape))
         exec_evt = prg.sum(queue, a.shape, None, a_buf, b_buf, dest_buf)
         exec_evt.wait()
         elapsed = 1e-9*(exec_evt.profile.end - exec_evt.profile.start)
@@ -65,7 +66,7 @@ for platform in cl.get_platforms():
         c = numpy.empty_like(a)
         cl.enqueue_read_buffer(queue, dest_buf, c).wait()
         error = 0
-        for i in range(zz):
+        for i in range(num_iterations):
                 if c[i] != c_result[i]:
                         error = 1
         if error:

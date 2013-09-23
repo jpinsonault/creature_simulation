@@ -1,5 +1,10 @@
 import numpy
+import pyopencl as cl
+import os
+from os.path import dirname
+from os.path import join
 from math import tanh
+from mako.template import Template
 
 
 class MultiNN:
@@ -100,3 +105,55 @@ class MultiNN:
             return 1.0
         else:
             return tanh(x)
+
+    def setup_opencl(self):
+        """
+
+        """
+        # Size in bytes
+        float_size = 8
+        hidden_buffer_size = float_size * self.num_networks * self.num_hidden
+
+        # Some arrays for intermediate values in the calculations
+        self.cl_hidden_sums = numpy.zeros((self.num_networks, self.num_hidden))
+        self.cl_hidden_outputs = numpy.zeros((self.num_networks, self.num_hidden))
+
+        # Setup context, queue
+        # Set to use GPU
+        platform = cl.get_platforms()
+        my_gpu_devices = platform[0].get_devices(device_type=cl.device_type.CPU)
+        for device in my_gpu_devices:
+            print(device)
+
+        self.cl_context = cl.Context(devices=my_gpu_devices)
+        self.cl_queue = cl.CommandQueue(self.cl_context)
+
+        # Setup buffers
+        mf = cl.mem_flags
+
+        self.cl_networks_buf = cl.Buffer(self.cl_context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.networks)
+        self.cl_inputs_buf = cl.Buffer(self.cl_context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.inputs)
+        self.cl_outputs_buf = cl.Buffer(self.cl_context, mf.WRITE_ONLY, self.outputs.nbytes)
+
+        self.cl_hidden_sums_buf = cl.Buffer(self.cl_context, mf.READ_WRITE, hidden_buffer_size)
+        self.cl_hidden_outputs_buf = cl.Buffer(self.cl_context, mf.READ_WRITE, hidden_buffer_size)
+
+        # Get kernel, send parameters for the mako file
+        self.kernel_compute_network = self.get_kernel("kernel_compute_network", network_size=self.num_weights, num_hidden=self.num_hidden, num_inputs=self.num_inputs, num_outputs=self.num_outputs)
+
+        self.cl_program = cl.Program(self.cl_context, self.kernel_compute_network).build()
+        
+
+
+    def compute_all_networks_opencl(self):
+        compute_network_event = self.cl_program.compute_network(self.cl_queue, (self.num_networks, ), None, self.cl_networks_buf, self.cl_inputs_buf, self.cl_outputs_buf, self.cl_hidden_sums_buf, self.cl_hidden_outputs_buf)
+
+        compute_network_event.wait()
+        cl.enqueue_read_buffer(self.cl_queue, self.cl_outputs_buf, self.outputs).wait()
+
+    def get_kernel(self, file_name, **parameters):
+        # get current directory, look in kernels/ for the mako file
+        path = join(dirname(__file__), 'kernels/{}.mako'.format(file_name))
+        with open(path, 'r') as kernel_file:
+            text = kernel_file.read()
+            return Template(text).render(**parameters)

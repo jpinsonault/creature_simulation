@@ -31,6 +31,19 @@ class ImplementationEquivalencyTests(unittest.TestCase):
       # We round the arrays because cython and python sometimes differ on the last decimal place
       self.assertTrue(np.array_equal(np.around(cython_nn.get_networks(), self.round), np.around(python_nn.get_networks(), self.round)))
 
+   def test_multiNN_python_output_same_as_opencl(self):
+      python_nn = MultiNN(self.num_networks, self.num_inputs, self.num_hidden, self.num_outputs)
+      opencl_nn = MultiNN(self.num_networks, self.num_inputs, self.num_hidden, self.num_outputs)
+
+      python_nn.initialize_random_networks(self.random_limit)
+      opencl_nn.set_networks(python_nn.networks[:])
+
+      python_nn.compute_all_networks()
+      opencl_nn.compute_all_networks_opencl()
+
+      # We round the arrays because cython and python sometimes differ on the last decimal place
+      self.assertTrue(np.array_equal(np.around(opencl_nn.get_networks(), self.round), np.around(python_nn.get_networks(), self.round)))
+
 
 if __name__ == '__main__':
     unittest.main()
