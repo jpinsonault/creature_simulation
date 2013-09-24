@@ -4,7 +4,7 @@ from NeuralNetworks.MultiNN_c import MultiNN_c
 from NeuralNetworks.MultiNN import MultiNN
 from time import time
 
-num_networks = 2
+num_networks = 1500
 num_input = 3
 num_hidden = 7
 num_output = 2
@@ -16,7 +16,7 @@ nn = MultiNN(num_networks, num_input, num_hidden, num_output)
 nn.initialize_random_networks(10)
 # print(nn.get_networks())
 
-nn.compute_all_networks()
+# nn.compute_all_networks()
 
 end_time = time()
 
@@ -30,7 +30,7 @@ start_time = time()
 
 nnc = MultiNN_c(num_networks, num_input, num_hidden, num_output)
 nnc.set_networks(nn.get_networks())
-nnc.compute_all_networks()
+# nnc.compute_all_networks()
 
 end_time = time()
 cython_time = end_time - start_time
@@ -49,7 +49,9 @@ start_time = time()
 nncl.compute_all_networks_opencl()
 
 end_time = time()
-# print(nncl.get_outputs())
+print(nn.get_outputs())
+
+print(nncl.get_outputs())
 
 opencl_time = end_time - start_time
 print("opencl Execution time: {}s".format(opencl_time))
