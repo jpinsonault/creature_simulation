@@ -75,8 +75,12 @@ class MultiNN:
         # Input-to-hidden weights
         for hidden_index in range(self.num_hidden):
             for input_index in range(self.num_inputs):
+                print("{} = {} + ({} * {})".format(self.hidden_sums[hidden_index], self.hidden_sums[hidden_index], inputs[input_index], weights[weights_index]))
                 self.hidden_sums[hidden_index] += inputs[input_index] * weights[weights_index]
+                # print("inputs[input_index] * weights[weights_index]]: {}, sum: {}".format(inputs[input_index] * weights[weights_index], self.hidden_sums[hidden_index]))
                 weights_index += 1
+
+        # print(self.hidden_sums)
 
         # Hidden biases
         for hidden_index in range(self.num_hidden):
@@ -133,7 +137,7 @@ class MultiNN:
 
         self.cl_networks_buf = cl.Buffer(self.cl_context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.networks)
         self.cl_inputs_buf = cl.Buffer(self.cl_context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.inputs)
-        self.cl_outputs_buf = cl.Buffer(self.cl_context, mf.WRITE_ONLY, self.outputs.nbytes)
+        self.cl_outputs_buf = cl.Buffer(self.cl_context, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.outputs)
 
         self.cl_hidden_sums_buf = cl.Buffer(self.cl_context, mf.READ_WRITE, hidden_buffer_size)
         self.cl_hidden_outputs_buf = cl.Buffer(self.cl_context, mf.READ_WRITE, hidden_buffer_size)
@@ -142,6 +146,7 @@ class MultiNN:
         self.kernel_compute_network = self.get_kernel("kernel_compute_network", network_size=self.num_weights, num_hidden=self.num_hidden, num_inputs=self.num_inputs, num_outputs=self.num_outputs)
 
         self.cl_program = cl.Program(self.cl_context, self.kernel_compute_network).build()
+        # print(self.kernel_compute_network)
         
 
 
@@ -150,6 +155,14 @@ class MultiNN:
 
         compute_network_event.wait()
         cl.enqueue_read_buffer(self.cl_queue, self.cl_outputs_buf, self.outputs).wait()
+
+    def run_cpu_test(self):
+        test_kernel = self.get_kernel("kernel_cpu_test")
+
+        test_program = cl.Program(self.cl_context, test_kernel).build()
+
+        event = test_program.test(self.cl_queue, (self.num_networks,), None)
+        event.wait()
 
     def get_kernel(self, file_name, **parameters):
         # get current directory, look in kernels/ for the mako file
