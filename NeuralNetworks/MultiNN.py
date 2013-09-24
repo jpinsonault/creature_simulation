@@ -23,8 +23,9 @@ class MultiNN:
         self.outputs = numpy.zeros((num_networks, num_outputs))
 
         # Buffers for calculations
-        self.hidden_sums = numpy.zeros((num_hidden))
-        self.hidden_outputs = numpy.zeros((num_hidden))
+        self.hidden_sums = numpy.ones((num_networks, num_hidden))
+        # self.hidden_sums = numpy.zeros((num_networks, num_hidden))
+        self.hidden_outputs = numpy.zeros((num_networks, num_hidden))
 
     def initialize_random_networks(self, limit):
         self.networks = numpy.random.rand(self.num_networks, self.num_weights)
@@ -70,31 +71,32 @@ class MultiNN:
         inputs = self.inputs[nn_index]
         outputs = self.outputs[nn_index]
 
+        hidden_sums = self.hidden_sums[nn_index]
+        hidden_outputs = self.hidden_outputs[nn_index]
+
         weights_index = 0
 
         # Input-to-hidden weights
         for hidden_index in range(self.num_hidden):
             for input_index in range(self.num_inputs):
-                print("{} = {} + ({} * {})".format(self.hidden_sums[hidden_index], self.hidden_sums[hidden_index], inputs[input_index], weights[weights_index]))
-                self.hidden_sums[hidden_index] += inputs[input_index] * weights[weights_index]
-                # print("inputs[input_index] * weights[weights_index]]: {}, sum: {}".format(inputs[input_index] * weights[weights_index], self.hidden_sums[hidden_index]))
+                hidden_sums[hidden_index] += inputs[input_index] * weights[weights_index]
                 weights_index += 1
 
-        # print(self.hidden_sums)
+        # print(hidden_sums)
 
         # Hidden biases
         for hidden_index in range(self.num_hidden):
-            self.hidden_sums[hidden_index] += weights[weights_index]
+            hidden_sums[hidden_index] += weights[weights_index]
             weights_index += 1
 
         # Apply activation function
         for hidden_index in range(self.num_hidden):
-            self.hidden_outputs[hidden_index] = self.hyperTan(self.hidden_sums[hidden_index])
+            hidden_outputs[hidden_index] = self.hyperTan(hidden_sums[hidden_index])
 
         # Hidden output weights
         for output_index in range(self.num_outputs):
             for hidden_index in range(self.num_hidden):
-                outputs[output_index] += self.hidden_outputs[hidden_index] * weights[weights_index]
+                outputs[output_index] += hidden_outputs[hidden_index] * weights[weights_index]
                 weights_index += 1
 
         # Output biases
@@ -139,16 +141,14 @@ class MultiNN:
         self.cl_inputs_buf = cl.Buffer(self.cl_context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.inputs)
         self.cl_outputs_buf = cl.Buffer(self.cl_context, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.outputs)
 
-        self.cl_hidden_sums_buf = cl.Buffer(self.cl_context, mf.READ_WRITE, hidden_buffer_size)
-        self.cl_hidden_outputs_buf = cl.Buffer(self.cl_context, mf.READ_WRITE, hidden_buffer_size)
+        self.cl_hidden_sums_buf = cl.Buffer(self.cl_context, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.hidden_sums)
+        self.cl_hidden_outputs_buf = cl.Buffer(self.cl_context, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.hidden_outputs)
 
         # Get kernel, send parameters for the mako file
-        self.kernel_compute_network = self.get_kernel("kernel_compute_network", network_size=self.num_weights, num_hidden=self.num_hidden, num_inputs=self.num_inputs, num_outputs=self.num_outputs)
+        self.kernel_compute_network = self.get_kernel("kernel_compute_network", network_size=self.num_weights, num_hidden=self.num_hidden, num_inputs=self.num_inputs, num_outputs=self.num_outputs, num_networks=self.num_networks)
 
         self.cl_program = cl.Program(self.cl_context, self.kernel_compute_network).build()
-        # print(self.kernel_compute_network)
-        
-
+        print(self.kernel_compute_network)
 
     def compute_all_networks_opencl(self):
         compute_network_event = self.cl_program.compute_network(self.cl_queue, (self.num_networks, ), None, self.cl_networks_buf, self.cl_inputs_buf, self.cl_outputs_buf, self.cl_hidden_sums_buf, self.cl_hidden_outputs_buf)
