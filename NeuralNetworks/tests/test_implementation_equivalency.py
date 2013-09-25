@@ -10,7 +10,7 @@ from NeuralNetworks.MultiNN_c import MultiNN_c
 class ImplementationEquivalencyTests(unittest.TestCase):
 
    def setUp(self):
-      self.num_networks = 100
+      self.num_networks = 1000
       self.num_inputs = 3
       self.num_hidden = 7
       self.num_outputs = 2
@@ -23,7 +23,7 @@ class ImplementationEquivalencyTests(unittest.TestCase):
       cython_nn = MultiNN_c(self.num_networks, self.num_inputs, self.num_hidden, self.num_outputs)
 
       python_nn.initialize_random_networks(self.random_limit)
-      cython_nn.set_networks(python_nn.networks[:])
+      cython_nn.set_networks(python_nn.get_networks())
 
       python_nn.compute_all_networks()
       cython_nn.compute_all_networks()
@@ -34,9 +34,10 @@ class ImplementationEquivalencyTests(unittest.TestCase):
    def test_multiNN_python_output_same_as_opencl(self):
       python_nn = MultiNN(self.num_networks, self.num_inputs, self.num_hidden, self.num_outputs)
       opencl_nn = MultiNN(self.num_networks, self.num_inputs, self.num_hidden, self.num_outputs)
+      opencl_nn.setup_opencl()
 
       python_nn.initialize_random_networks(self.random_limit)
-      opencl_nn.set_networks(python_nn.networks[:])
+      opencl_nn.set_networks(python_nn.get_networks())
 
       python_nn.compute_all_networks()
       opencl_nn.compute_all_networks_opencl()
