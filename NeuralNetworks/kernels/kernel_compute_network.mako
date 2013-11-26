@@ -14,7 +14,7 @@ __kernel void compute_network(
   // Local copies
   __private double weights[${network_size}];
 
-  // Which row of the network we're in
+  // GID is which row of the network we're in
   int w_row = gid * ${network_size};
   int i_row = gid * ${num_inputs};
   int h_row = gid * ${num_hidden};
@@ -25,6 +25,8 @@ __kernel void compute_network(
   for(int i = 0; i < ${network_size}; i++){
     weights[i] = weights_in[w_row + i];
   }
+
+  // barrier(CLK_LOCAL_MEM_FENCE);
 
   // Input-to-hidden weights
   for(hidden_index = 0; hidden_index < ${num_hidden}; hidden_index++){

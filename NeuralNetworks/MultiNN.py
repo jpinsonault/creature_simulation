@@ -5,6 +5,7 @@ from os.path import dirname
 from os.path import join
 from math import tanh
 from mako.template import Template
+from unicodedata import normalize
 
 
 class MultiNN:
@@ -125,9 +126,9 @@ class MultiNN:
         # Setup context, queue
         # Set to use GPU
         platform = cl.get_platforms()
-        my_gpu_devices = platform[0].get_devices(device_type=cl.device_type.CPU)
-        for device in my_gpu_devices:
-            print(device)
+        my_gpu_devices = platform[0].get_devices(device_type=cl.device_type.GPU)
+        # for device in my_gpu_devices:
+            # print(device)
 
         self.cl_context = cl.Context(devices=my_gpu_devices)
         self.cl_queue = cl.CommandQueue(self.cl_context)
@@ -149,7 +150,10 @@ class MultiNN:
         # print(self.kernel_compute_network)
 
     def compute_all_networks_opencl(self):
-        compute_network_event = self.cl_program.compute_network(self.cl_queue, (self.num_networks, ), None, self.cl_networks_buf, self.cl_inputs_buf, self.cl_outputs_buf, self.cl_hidden_sums_buf, self.cl_hidden_outputs_buf)
+        global_size = (self.num_networks, )
+        # local_size = (1, )
+        local_size = None
+        compute_network_event = self.cl_program.compute_network(self.cl_queue, global_size, None, self.cl_networks_buf, self.cl_inputs_buf, self.cl_outputs_buf, self.cl_hidden_sums_buf, self.cl_hidden_outputs_buf)
 
         compute_network_event.wait()
         cl.enqueue_read_buffer(self.cl_queue, self.cl_outputs_buf, self.outputs).wait()
@@ -167,4 +171,6 @@ class MultiNN:
         path = join(dirname(__file__), 'kernels/{}.mako'.format(file_name))
         with open(path, 'r') as kernel_file:
             text = kernel_file.read()
-            return Template(text).render(**parameters)
+            kernel = Template(text).render(**parameters)
+            # opencl returns a warning if the code in unicode, so convert it
+            return normalize('NFKD', kernel).encode('ascii','ignore')

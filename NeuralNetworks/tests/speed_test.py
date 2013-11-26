@@ -4,7 +4,7 @@ from NeuralNetworks.MultiNN_c import MultiNN_c
 from NeuralNetworks.MultiNN import MultiNN
 from time import time
 
-num_networks = 10000
+num_networks = 64*1000
 num_input = 3
 num_hidden = 7
 num_output = 2
@@ -46,10 +46,10 @@ end_time = time()
 opencl_time = end_time - start_time
 
 ###############################################
-print("Python Execution time: {}s".format(python_time))
-print("Cython Execution time: {}s".format(cython_time))
-print("opencl Execution time: {}s".format(opencl_time))
+print("Python Execution time: {:.2f}s".format(python_time))
+print("Cython Execution time: {:.2f}s".format(cython_time))
+print("opencl Execution time: {:.2f}s".format(opencl_time))
 
-print("Improvement from python to cython: {}%".format((python_time/cython_time-1)*100))
-print("Improvement from python to opencl: {}%".format((python_time/opencl_time-1)*100))
-# print("Improvement from cython to opencl: {}%".format((cython_time/opencl_time-1)*100))
+print("Improvement from python to cython: {:.2f}x faster".format((python_time/cython_time)))
+print("Improvement from python to opencl: {:.2f}x faster".format((python_time/opencl_time)))
+# print("Improvement from cython to opencl: {:.2f}x faster".format((cython_time/opencl_time)))
