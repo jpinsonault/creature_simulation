@@ -1,0 +1,9 @@
+TODO
+====
+
+Move camera
+	Smooth scrolling/zooming
+Insert objects into the world
+Make them move
+Enable collision detection
+
