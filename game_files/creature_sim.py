@@ -155,7 +155,6 @@ class Window:
         """Scales a coordinate from the virtual world to the screen"""
         x = int((coord[0] + self.x_position) / self.zoom + self.width/2)
         y = int((coord[1] + self.y_position) / self.zoom + self.height/2)
-        print(self.zoom)
         return [x, y]
 
 
