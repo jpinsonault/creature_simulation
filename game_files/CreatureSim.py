@@ -24,14 +24,17 @@ class CreatureSim(DirectObject):
         # Disable the camera trackball controls.
         base.disableMouse()
         self.setupKeys()
+        self.textures = {}
+        self.loadTextures()
  
         # Load the environment model.
-        self.environ = loader.loadModel("models/environment")
+        self.terrain = loader.loadModel("/c/Users/joe/Documents/terrain.x")
         # Reparent the model to render.
-        self.environ.reparentTo(render)
+        self.terrain.reparentTo(render)
         # Apply scale and position transforms on the model.
-        self.environ.setScale(0.25, 0.25, 0.25)
-        self.environ.setPos(-8, 42, 0)
+        self.terrain.setScale(400, 400, 400)
+        self.terrain.setTexture(self.textures["dirt"], 1)
+        self.terrain.setPos(0, 0, 0)
         # Dummy node for the camera to look at
         self.cameraLookAt = render.attachNewNode("cameraLookAt")
         self.cameraLookAt.setHpr(0,0,0)
@@ -69,6 +72,9 @@ class CreatureSim(DirectObject):
         self.accept("a-up", self.setKey, ["cam-left",0])
         self.accept("s-up", self.setKey, ["cam-up",0])
         self.accept("d-up", self.setKey, ["cam-right",0])
+
+    def loadTextures(self):
+        self.textures["dirt"] = loader.loadTexture("/c/Users/joe/Documents/dirt.png")
 
     def setupLerps(self):
         self.cameraLerp = PositionLerper(startPosition=self.cameraLookAt.getPos())

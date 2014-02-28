@@ -1,8 +1,8 @@
 TODO
 ====
 
-Move camera
-	Smooth scrolling/zooming
+Make Terrain
+
 Insert objects into the world
 Make them move
 Enable collision detection
