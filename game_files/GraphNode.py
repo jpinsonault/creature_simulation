@@ -5,11 +5,9 @@ class GraphNode(object):
         A node in the scene graph.
         Handles drawing itself to the screen as well as other related functions
     """
-    def __init__(self, screen, parent=None, x=0, y=0, heading=0.0):
+    def __init__(self, parent=None, x=0, y=0, heading=0.0):
         super(GraphNode, self).__init__()
 
-        # Screen is the pygame screen object that will be drawn to
-        self.screen = screen
         # Reference to parent GraphNode
         self.parent = None
         # x, y, and heading are relative to the parent
@@ -25,7 +23,8 @@ class GraphNode(object):
         self.children = blist()
         
     def reparent_to(self, new_parent):
-        self.parent.remove_child(self)
+        if self.parent:
+            self.parent.remove_child(self)
         self.parent = new_parent
         self.add_child(self)
 
@@ -35,8 +34,16 @@ class GraphNode(object):
     def remove_child(self, child):
         self.children.remove(child)
 
-    def draw(self):
+    def draw(self, screen, window):
+        self.draw_self(screen, window)
+        self.draw_children(screen, window)
+
+    def draw_self(self, screen, window):
         raise Exception("Method not implemented")
+
+    def draw_children(self, screen, window):
+        for child in self.children:
+            child.draw(screen, window)
 
     def move(self, x_change=0, y_change=0):
         self.x += x_change
