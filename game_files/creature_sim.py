@@ -5,6 +5,7 @@ import random
 from pygame import draw
 from pygame.locals import *
 from collections import deque
+from CreatureSim import CreatureSim
 from GameObjects import Background
 from GameObjects import Creature
 from GameObjects import Food
@@ -42,17 +43,21 @@ def game_loop():
     global rectangle
     global window
     global scene
-    window = Window(width,height)
+    window = Window(width,height, x=-(width / 2), y=-(height / 2))
     scene = Background()
     creatures = []
 
-    for x, y in zip(range(0, 200), range(0, 200)):
-        new_creature = Creature(x=x, y=y)
-        creatures.append(new_creature)
-        new_creature.reparent_to(scene)
+    for x in range(0, 1000, 10):
+        for y in range(0, 1000, 40):
+            new_creature = Creature(x=x, y=y, color=WHITE)
+            creatures.append(new_creature)
+            new_creature.reparent_to(scene)
+
+    print("Num Creatures: {}".format(len(creatures)))
 
     while running:
-        dt = clock.tick(60)
+        dt = clock.tick(70)
+        pygame.display.set_caption("Press Esc to quit. FPS: %.2f" % (clock.get_fps()))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
@@ -75,13 +80,13 @@ def update_camera_dir(event):
             raise SystemExit()
 
         if event.key == K_w:
-            camera_dir[1] += -MOVEMENT_SPEED
-        if event.key == K_s:
             camera_dir[1] += MOVEMENT_SPEED
+        if event.key == K_s:
+            camera_dir[1] += -MOVEMENT_SPEED
         if event.key == K_a:
-            camera_dir[0] += -MOVEMENT_SPEED
-        if event.key == K_d:
             camera_dir[0] += MOVEMENT_SPEED
+        if event.key == K_d:
+            camera_dir[0] += -MOVEMENT_SPEED
 
         if event.key == K_e:
             zoom_dir += ZOOM_SPEED
@@ -110,7 +115,7 @@ def update_camera_dir(event):
 def render_frame():
     screen.fill(BLACK)
 
-
+    scene.draw(screen, window)
     
     pygame.display.flip()
 
@@ -120,4 +125,6 @@ def menu():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    game = CreatureSim()
+    game.run()
