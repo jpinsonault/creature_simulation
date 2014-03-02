@@ -55,8 +55,6 @@ class CreatureSim(PyGameBase):
 
         self.clock = pygame.time.Clock()
 
-
-
     def run(self):
         self.load()
 
@@ -66,18 +64,20 @@ class CreatureSim(PyGameBase):
 
     def game_loop(self):
         while self.running:
-            self.dt = self.clock.tick(60)
+            self.dt = self.clock.tick()
 
             self.handle_events()
             self.move_camera()
             self.render_frame()
 
     def move_camera(self):
+        # Camera Zoom
         if self.key_presses["zoom-in"]:
             self.camera.zoom_in(self.dt)
         if self.key_presses["zoom-out"]:
             self.camera.zoom_out(self.dt)
 
+        # Camera movement
         if self.key_presses["cam-up"]:
             self.camera.move(y_change=-self.dt * self.CAMERA_MOVE_SPEED)
         if self.key_presses["cam-down"]:
@@ -112,7 +112,7 @@ class CreatureSim(PyGameBase):
         self.creatures = []
 
         for x in range(0, 1000, 20):
-            for y in range(0, 1000, 40):
+            for y in range(0, 1000, 20):
                 new_creature = Creature(x=x, y=y, color=WHITE)
                 self.creatures.append(new_creature)
                 new_creature.reparent_to(self.scene)

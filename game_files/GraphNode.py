@@ -89,6 +89,7 @@ class GraphNode(object):
         # Inlining it like this is ugly but faster with python arrays
         # Haven't tried array addition with numpy arrays yet
         if self.has_moved():
+            # self._relative_position = [self.x, self.y, self.heading]
             self._relative_position[0] = self.x
             self._relative_position[1] = self.y
             self._relative_position[2] = self.heading

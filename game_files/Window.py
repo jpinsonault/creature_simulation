@@ -7,7 +7,7 @@ class Window(GraphNode):
     Treats it's own x,y coordinate as the center of the screen to enable correct 
         zooming
     """
-    MIN_ZOOM = 0.01
+    MIN_ZOOM = 0.08
     MAX_ZOOM = 4.0
 
     def __init__(self, width, height, x=0, y=0, zoom = 1.0, zoom_speed = 0.001):
