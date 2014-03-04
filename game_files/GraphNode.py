@@ -84,7 +84,7 @@ class GraphNode(object):
         self.heading = heading
         self.position_changed = True
 
-    def set_relative_position(self):
+    def calc_absolute_position(self):
         """Calculates the offset for the x-y axes and heading based on the parents"""
         # Inlining it like this is ugly but faster with python arrays
         # Haven't tried array addition with numpy arrays yet
@@ -102,7 +102,7 @@ class GraphNode(object):
 
     def relative_position(self):
         if self.stale:
-            self.set_relative_position()
+            self.calc_absolute_position()
             self.stale = False
         return self._relative_position
 
