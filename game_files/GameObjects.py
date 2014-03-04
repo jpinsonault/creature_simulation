@@ -23,8 +23,8 @@ class Polygon(GraphNode):
         super(Polygon, self).__init__(x, y, heading)
         self.color = color
         # For caching shape coords
-        self.relative_shape_coords = self.shape
-        self.shape_screen_coords = self.shape
+        self.relative_shape_coords = self.shape[:]
+        self.shape_screen_coords = self.shape[:]
         self.relative_center = [0, 0]
 
     def draw_self(self, screen, window):
@@ -66,6 +66,10 @@ class Creature(Polygon):
 
     def __init__(self, x=0, y=0, heading=0.0, color=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+
+    def move_and_rotate(self, dt):
+        # self.move(x_change=dt*.1)
+        self.rotate(dt*.1)
 
 
 class Food(Polygon):

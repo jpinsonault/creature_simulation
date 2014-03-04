@@ -70,7 +70,7 @@ class GraphNode(object):
         self.y += y_change
         self.position_changed = True
 
-    def rotate(angle_change):
+    def rotate(self, angle_change):
         """Rotates object by angle_change degrees"""
         self.heading += angle_change
         self.position_changed = True

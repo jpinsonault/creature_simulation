@@ -54,6 +54,7 @@ class CreatureSim(PyGameBase):
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
         self.clock = pygame.time.Clock()
+        self.dt = 0
 
     def run(self):
         self.load()
@@ -111,8 +112,8 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(0, 1000, 20):
-            for y in range(0, 1000, 20):
+        for x in range(0, 1000, 100):
+            for y in range(0, 1000, 100):
                 new_creature = Creature(x=x, y=y, color=WHITE)
                 self.creatures.append(new_creature)
                 new_creature.reparent_to(self.scene)
@@ -127,12 +128,15 @@ class CreatureSim(PyGameBase):
 
         self.screen.fill(BLACK)
 
+        self.move_creatures()
+
         self.scene.draw(self.screen, self.camera)
         
         pygame.display.flip()
 
-    def detect_collisions(self):
-        pass
+    def move_creatures(self):
+        for creature in self.creatures:
+            creature.move_and_rotate(self.dt)
 
     def setup_keys(self):
         """Sets up key presses"""
