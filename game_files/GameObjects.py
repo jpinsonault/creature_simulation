@@ -5,6 +5,10 @@
 from pygame import draw
 from GraphNode import GraphNode
 from operator import add
+from math import cos
+from math import sin
+from pprint import pprint
+from PygameUtils import rotate_around
 
 
 class Background(GraphNode):
@@ -23,24 +27,15 @@ class Polygon(GraphNode):
         super(Polygon, self).__init__(x, y, heading)
         self.color = color
         # For caching shape coords
-        self.relative_shape_coords = self.shape[:]
-        self.shape_screen_coords = self.shape[:]
-        self.relative_center = [0, 0]
+        self.absolute_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
+        self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
+        self.absolute_position = [0, 0]
 
     def draw_self(self, screen, window):
-        # Offset from parents
-        relative_position = self.relative_position()
-
-        self.relative_center[0] = self.center[0] + relative_position[0]
-        self.relative_center[1] = self.center[1] + relative_position[1]
-        if window.on_screen(self.relative_center):
-            # self.calc_relative_shape_coords(relative_position)
-            self.relative_shape_coords = [map(add, point, relative_position[:-1]) for point in self.shape]
-
-            self.shape_screen_coords = [window.scale(point) for point in self.relative_shape_coords]
-            # self.calc_shape_screen_coords(window)
+        if window.on_screen(self.absolute_position):
+            self.onscreen_shape_coords = [window.scale(point) for point in self.absolute_shape_coords]
         
-            draw.polygon(screen, self.color, self.shape_screen_coords)
+            draw.polygon(screen, self.color, self.onscreen_shape_coords)
 
     def find_center(self):
         """Find the geometric center of the polygon"""
@@ -49,12 +44,32 @@ class Polygon(GraphNode):
 
         return [x_mean, y_mean]
 
-    def calc_shape_screen_coords(self, window):
+    def calc_absolute_position(self):
+        # Get the position
+        super(Polygon, self).calc_absolute_position()
+        length = len(self.shape)
+    
+        # Offset the shape coords by our absolute_position
+        offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]] for point in self.shape]
+
+        # Rotate the shape around parent's center
+        if self.parent:
+            index = 0
+            while index < length:
+                self.absolute_shape_coords[index] = rotate_around(offset_unrotated_shape[index], self.parent.absolute_position, self.parent.heading)
+                index += 1
+
+        # Rotate the shape around our center
         index = 0
-        num_points = len(self.shape)
-        while index < num_points:
-            self.shape_screen_coords[index] = window.scale(self.relative_shape_coords[index])
+        while index < length:
+            self.absolute_shape_coords[index] = rotate_around(self.absolute_shape_coords[index], self.absolute_position, self.heading)
             index += 1
+
+
+
+    def calc_absolute_shape_coords(self):
+        """Calculates the new moved and rotated points for the polygon's shape"""
+        self.calc_absolute_position()
         
 
 class Creature(Polygon):
@@ -62,7 +77,7 @@ class Creature(Polygon):
         Object representing the creature on screen
 
     """
-    BASE_SHAPE = [[0,0], [5, -5], [10, 0], [10, 10], [5, 15], [0, 10], [0,0]]
+    BASE_SHAPE = [[-5, -5], [0, -10], [5, -5], [5, 5], [0, 10], [-5, 5], [-5, -5]]
 
     def __init__(self, x=0, y=0, heading=0.0, color=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)

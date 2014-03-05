@@ -32,8 +32,8 @@ class Window(GraphNode):
 
     def scale(self, point):
         """Scales a coordinate from the virtual world to the screen"""
-        x = (point[0] + self.x) / self.zoom + self.width/2
-        y = (point[1] + self.y) / self.zoom + self.height/2
+        x = (point[0] + self.position[0]) / self.zoom + self.width / 2
+        y = (point[1] + self.position[1]) / self.zoom + self.height / 2
         return [x, y]
 
     def on_screen(self, point):

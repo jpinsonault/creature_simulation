@@ -43,13 +43,14 @@ class CreatureSim(PyGameBase):
     """Runs the creature sim game"""
 
     CAMERA_MOVE_SPEED = .5
-    WIDTH = 800
-    HEIGHT = 600
+    WIDTH = 1100
+    HEIGHT = 900
 
     def __init__(self):
         super(CreatureSim, self).__init__()
         self.running = True
-        self.camera = Window(self.WIDTH, self.HEIGHT, x=-(self.WIDTH / 2), y=-(self.HEIGHT / 2))
+        # self.camera = Window(self.WIDTH, self.HEIGHT, x=-(self.WIDTH / 2), y=-(self.HEIGHT / 2))
+        self.camera = Window(self.WIDTH, self.HEIGHT, x=0, y=0)
         self.scene = Background()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
@@ -68,6 +69,7 @@ class CreatureSim(PyGameBase):
             self.dt = self.clock.tick()
 
             self.handle_events()
+            self.update_positions()
             self.move_camera()
             self.render_frame()
 
@@ -80,9 +82,9 @@ class CreatureSim(PyGameBase):
 
         # Camera movement
         if self.key_presses["cam-up"]:
-            self.camera.move(y_change=-self.dt * self.CAMERA_MOVE_SPEED)
-        if self.key_presses["cam-down"]:
             self.camera.move(y_change=self.dt * self.CAMERA_MOVE_SPEED)
+        if self.key_presses["cam-down"]:
+            self.camera.move(y_change=-self.dt * self.CAMERA_MOVE_SPEED)
         if self.key_presses["cam-left"]:
             self.camera.move(x_change=self.dt * self.CAMERA_MOVE_SPEED)
         if self.key_presses["cam-right"]:
@@ -112,31 +114,33 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(0, 1000, 100):
-            for y in range(0, 1000, 100):
+        for x in range(0, 2000, 100):
+            for y in range(0, 2000, 100):
                 new_creature = Creature(x=x, y=y, color=WHITE)
                 self.creatures.append(new_creature)
                 new_creature.reparent_to(self.scene)
 
-        print("Num Creatures: {}".format(len(self.creatures)))
+        # for x in range(0, 1000, 10):
+        #     new_creature = Creature(x=x, y=x, color=WHITE)
+        #     self.creatures.append(new_creature)
+        #     new_creature.reparent_to(self.scene)
 
-    def update_positions(self):
-        pass
+        print("Num Creatures: {}".format(len(self.creatures)))
 
     def render_frame(self):
         pygame.display.set_caption(str(self.clock.get_fps()))
 
         self.screen.fill(BLACK)
 
-        self.move_creatures()
-
         self.scene.draw(self.screen, self.camera)
         
         pygame.display.flip()
 
-    def move_creatures(self):
+    def update_positions(self):
         for creature in self.creatures:
-            creature.move_and_rotate(self.dt)
+            creature.rotate(self.dt * -.002)
+
+        self.scene.rotate(self.dt * .001)
 
     def setup_keys(self):
         """Sets up key presses"""

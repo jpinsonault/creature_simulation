@@ -2,6 +2,7 @@ from blist import blist
 from operator import add
 import numpy
 from numpy import array
+from PygameUtils import rotate_around
 
 
 class GraphNode(object):
@@ -15,10 +16,9 @@ class GraphNode(object):
         # Reference to parent GraphNode
         self.parent = None
         # x, y, and heading are relative to the parent
-        self.x = x
-        self.y = y
+        self.position = [x, y]
+        
         self.heading = heading
-        self.center = self.find_center()
 
         # Will draw to the screen if visible
         self.visible = True
@@ -27,10 +27,11 @@ class GraphNode(object):
         # for fast insertions and deletions
         self.children = []
 
-        # Hold values for the relative position
-        self._relative_position = [0.0, 0.0, 0.0]
+        # Hold values for the absolute position
+        self.absolute_position = [0.0, 0.0, 0.0]
+        self.unrotated_position = [0.0, 0.0, 0.0]
         self.offset_center = [0.0, 0.0]
-        # Stale is true if the relative position hasn't been calculated yet
+        # Stale is true if the absolute position hasn't been calculated yet
         self.stale = True
         # Position changed is true if this or parents have moved since last frame
         self.position_changed = True
@@ -52,11 +53,12 @@ class GraphNode(object):
         self.children.remove(child)
 
     def draw(self, screen, window):
+        self.calc_absolute_position()
+        self.position_changed = False
         if self.visible:
             self.draw_self(screen, window)
         self.draw_children(screen, window)
         self.stale = True
-        self.position_changed = False
 
     def draw_self(self, screen, window):
         raise Exception("Method not implemented")
@@ -66,8 +68,8 @@ class GraphNode(object):
             child.draw(screen, window)
 
     def move(self, x_change=0, y_change=0):
-        self.x += x_change
-        self.y += y_change
+        self.position[0] += x_change
+        self.position[1] += y_change
         self.position_changed = True
 
     def rotate(self, angle_change):
@@ -76,8 +78,7 @@ class GraphNode(object):
         self.position_changed = True
 
     def set_position(self, x, y):
-        self.x = x
-        self.y = y
+        self.position = [x, y]
         self.position_changed = True
 
     def set_heading(self, heading):
@@ -86,28 +87,21 @@ class GraphNode(object):
 
     def calc_absolute_position(self):
         """Calculates the offset for the x-y axes and heading based on the parents"""
-        # Inlining it like this is ugly but faster with python arrays
-        # Haven't tried array addition with numpy arrays yet
-        if self.has_moved():
-            # self._relative_position = [self.x, self.y, self.heading]
-            self._relative_position[0] = self.x
-            self._relative_position[1] = self.y
-            self._relative_position[2] = self.heading
-
-            if self.parent:
-                parent_position = self.parent.relative_position()
-                self._relative_position[0] += parent_position[0]
-                self._relative_position[1] += parent_position[1]
-                self._relative_position[2] += parent_position[2]
-
-    def relative_position(self):
         if self.stale:
-            self.calc_absolute_position()
-            self.stale = False
-        return self._relative_position
+            # Inlining it like this is ugly but faster
+            if self.has_moved():
+                self.unrotated_position[0] = self.position[0]
+                self.unrotated_position[1] = self.position[1]
 
-    def find_center(self):
-        return [self.x, self.y]
+                if self.parent:
+                    parent_position = self.parent.absolute_position
+                    self.unrotated_position[0] += parent_position[0]
+                    self.unrotated_position[1] += parent_position[1]
+                    # Rotate around parent's absolute_position
+                    self.absolute_position = rotate_around(self.unrotated_position, self.parent.absolute_position, self.parent.heading)
+
+            self.stale = False
+
 
     def has_moved(self):
         if self.parent:
