@@ -9,6 +9,7 @@ from math import cos
 from math import sin
 from pprint import pprint
 from PygameUtils import rotate_around
+from PygameUtils import rotate_shape
 
 
 class Background(GraphNode):
@@ -27,13 +28,13 @@ class Polygon(GraphNode):
         super(Polygon, self).__init__(x, y, heading)
         self.color = color
         # For caching shape coords
-        self.absolute_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
+        self.absolute_shape = [[0.0, 0.0] for x in xrange(len(self.shape))]
         self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
         self.absolute_position = [0, 0]
 
     def draw_self(self, screen, window):
         if window.on_screen(self.absolute_position):
-            self.onscreen_shape_coords = [window.scale(point) for point in self.absolute_shape_coords]
+            self.onscreen_shape_coords = [window.scale(point) for point in self.absolute_shape]
         
             draw.polygon(screen, self.color, self.onscreen_shape_coords)
 
@@ -53,23 +54,11 @@ class Polygon(GraphNode):
         offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]] for point in self.shape]
 
         # Rotate the shape around parent's center
-        if self.parent:
-            index = 0
-            while index < length:
-                self.absolute_shape_coords[index] = rotate_around(offset_unrotated_shape[index], self.parent.absolute_position, self.parent.heading)
-                index += 1
+        parent = self.parent
+        if parent:
+            self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
 
-        # Rotate the shape around our center
-        index = 0
-        while index < length:
-            self.absolute_shape_coords[index] = rotate_around(self.absolute_shape_coords[index], self.absolute_position, self.heading)
-            index += 1
-
-
-
-    def calc_absolute_shape_coords(self):
-        """Calculates the new moved and rotated points for the polygon's shape"""
-        self.calc_absolute_position()
+        self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
         
 
 class Creature(Polygon):

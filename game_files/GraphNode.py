@@ -3,6 +3,9 @@ from operator import add
 import numpy
 from numpy import array
 from PygameUtils import rotate_around
+from math import pi
+from math import cos
+from math import sin
 
 
 class GraphNode(object):
@@ -35,6 +38,10 @@ class GraphNode(object):
         self.stale = True
         # Position changed is true if this or parents have moved since last frame
         self.position_changed = True
+
+        # sin and cos of the heading will be cached so children don't have to recalculate
+        self.cos_radians = 0.0
+        self.sin_radians = 0.0
         
     def reparent_to(self, new_parent):
         if self.parent:
@@ -74,7 +81,12 @@ class GraphNode(object):
 
     def rotate(self, angle_change):
         """Rotates object by angle_change degrees"""
+        two_pi = 2*pi
         self.heading += angle_change
+        if self.heading > two_pi:
+            self.heading -= two_pi
+        if self.heading < 0:
+            self.heading += two_pi
         self.position_changed = True
 
     def set_position(self, x, y):
@@ -88,18 +100,23 @@ class GraphNode(object):
     def calc_absolute_position(self):
         """Calculates the offset for the x-y axes and heading based on the parents"""
         if self.stale:
-            # Inlining it like this is ugly but faster
             if self.has_moved():
+                # Cache sin and cos
+                self.cos_radians = cos(self.heading)
+                self.sin_radians = sin(self.heading)
+
+                # Inlining it like this is ugly but faster
                 self.unrotated_position[0] = self.position[0]
                 self.unrotated_position[1] = self.position[1]
 
-                if self.parent:
-                    parent_position = self.parent.absolute_position
+                parent = self.parent
+                if parent:
+                    parent_position = parent.absolute_position
                     self.unrotated_position[0] += parent_position[0]
                     self.unrotated_position[1] += parent_position[1]
                     # Rotate around parent's absolute_position
-                    self.absolute_position = rotate_around(self.unrotated_position, self.parent.absolute_position, self.parent.heading)
-
+                    self.absolute_position = rotate_around(parent.cos_radians, parent.sin_radians, self.unrotated_position, parent.absolute_position, parent.heading)
+                    
             self.stale = False
 
 
