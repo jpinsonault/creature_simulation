@@ -66,7 +66,7 @@ class Creature(Polygon):
         Object representing the creature on screen
 
     """
-    BASE_SHAPE = [[-5, -5], [0, -10], [5, -5], [5, 5], [0, 10], [-5, 5], [-5, -5]]
+    BASE_SHAPE = [[-5, -5], [0, -10], [5, -5], [5, 5], [0, 10], [-5, 5]]
 
     def __init__(self, x=0, y=0, heading=0.0, color=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)

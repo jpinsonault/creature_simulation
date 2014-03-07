@@ -1,11 +1,12 @@
 from blist import blist
 from operator import add
-import numpy
-from numpy import array
+import numpy as np
 from PygameUtils import rotate_around
 from math import pi
 from math import cos
 from math import sin
+
+NP_FLOAT = np.float
 
 
 class GraphNode(object):
@@ -13,14 +14,13 @@ class GraphNode(object):
         A node in the scene graph.
         Handles drawing itself to the screen as well as other related functions
     """
-    def __init__(self, x=0, y=0, heading=0.0):
+    def __init__(self, x=0.0, y=0.0, heading=0.0):
         super(GraphNode, self).__init__()
 
         # Reference to parent GraphNode
         self.parent = None
         # x, y, and heading are relative to the parent
-        self.position = [x, y]
-        
+        self.position = np.array([x, y], dtype=np.int)
         self.heading = heading
 
         # Will draw to the screen if visible
@@ -34,8 +34,6 @@ class GraphNode(object):
         self.absolute_position = [0.0, 0.0, 0.0]
         self.unrotated_position = [0.0, 0.0, 0.0]
         self.offset_center = [0.0, 0.0]
-        # Stale is true if the absolute position hasn't been calculated yet
-        self.stale = True
         # Position changed is true if this or parents have moved since last frame
         self.position_changed = True
 
@@ -60,15 +58,16 @@ class GraphNode(object):
         self.children.remove(child)
 
     def draw(self, screen, window):
-        self.calc_absolute_position()
-        self.position_changed = False
+        if self.has_moved():
+            self.calc_absolute_position()
         if self.visible:
             self.draw_self(screen, window)
         self.draw_children(screen, window)
-        self.stale = True
+        self.position_changed = False
 
     def draw_self(self, screen, window):
-        raise Exception("Method not implemented")
+        """Abtract method"""
+        pass
 
     def draw_children(self, screen, window):
         for child in self.children:
@@ -80,7 +79,7 @@ class GraphNode(object):
         self.position_changed = True
 
     def rotate(self, angle_change):
-        """Rotates object by angle_change degrees"""
+        """Rotates object by angle_change radians"""
         two_pi = 2*pi
         self.heading += angle_change
         if self.heading > two_pi:
@@ -98,26 +97,23 @@ class GraphNode(object):
         self.position_changed = True
 
     def calc_absolute_position(self):
-        """Calculates the offset for the x-y axes and heading based on the parents"""
-        if self.stale:
-            if self.has_moved():
-                # Cache sin and cos
-                self.cos_radians = cos(self.heading)
-                self.sin_radians = sin(self.heading)
+        """Offsets and rotates our position and stores it in self.absolute_position"""
+        
+        # Cache sin and cos for use by self and children
+        self.cos_radians = cos(self.heading)
+        self.sin_radians = sin(self.heading)
 
-                # Inlining it like this is ugly but faster
-                self.unrotated_position[0] = self.position[0]
-                self.unrotated_position[1] = self.position[1]
+        # Inlining it like this is ugly but faster
+        self.unrotated_position[0] = self.position[0]
+        self.unrotated_position[1] = self.position[1]
 
-                parent = self.parent
-                if parent:
-                    parent_position = parent.absolute_position
-                    self.unrotated_position[0] += parent_position[0]
-                    self.unrotated_position[1] += parent_position[1]
-                    # Rotate around parent's absolute_position
-                    self.absolute_position = rotate_around(parent.cos_radians, parent.sin_radians, self.unrotated_position, parent.absolute_position, parent.heading)
-                    
-            self.stale = False
+        parent = self.parent
+        if parent:
+            parent_position = parent.absolute_position
+            self.unrotated_position[0] += parent_position[0]
+            self.unrotated_position[1] += parent_position[1]
+            # Rotate around parent's absolute_position
+            self.absolute_position = rotate_around(parent.cos_radians, parent.sin_radians, self.unrotated_position, parent.absolute_position, parent.heading)
 
 
     def has_moved(self):

@@ -114,16 +114,14 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(0, 2000, 100):
-            for y in range(0, 2000, 100):
+        for x in range(-1000, 1000, 100):
+            for y in range(-1000, 1000, 100):
                 new_creature = Creature(x=x, y=y, color=WHITE)
                 self.creatures.append(new_creature)
                 new_creature.reparent_to(self.scene)
 
-        # for x in range(0, 1000, 10):
-        #     new_creature = Creature(x=x, y=x, color=WHITE)
-        #     self.creatures.append(new_creature)
-        #     new_creature.reparent_to(self.scene)
+        self.camera.reparent_to(self.scene)
+
 
         print("Num Creatures: {}".format(len(self.creatures)))
 
@@ -137,10 +135,11 @@ class CreatureSim(PyGameBase):
         pygame.display.flip()
 
     def update_positions(self):
+        pass
         for creature in self.creatures:
-            creature.rotate(self.dt * -.002)
+            creature.rotate(self.dt * -.001)
 
-        self.scene.rotate(self.dt * .001)
+        # self.scene.rotate(self.dt * .001)
 
     def setup_keys(self):
         """Sets up key presses"""
