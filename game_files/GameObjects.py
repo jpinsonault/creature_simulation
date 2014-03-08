@@ -7,6 +7,7 @@ from GraphNode import GraphNode
 from operator import add
 from math import cos
 from math import sin
+from math import sqrt
 from pprint import pprint
 from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
@@ -32,6 +33,8 @@ class Polygon(GraphNode):
         self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
         self.absolute_position = [0, 0]
 
+        self.bounds = self.get_bounding_square()
+
     def draw_self(self, screen, window):
         if window.on_screen(self.absolute_position):
             self.calc_shape_rotation()
@@ -45,6 +48,24 @@ class Polygon(GraphNode):
         y_mean = sum(point[1] for point in self.shape) / len(self.shape)
 
         return [x_mean, y_mean]
+
+    def get_bounding_circle(self):
+        greates_distance = 0
+        for point in self.shape:
+            distance = (point[0] * point[0]) + (point[1] * point[1])
+            greates_distance = max(distance, greates_distance)
+
+        # Return the radius of the bounding circle
+        return sqrt(greates_distance)
+
+    def get_bounding_square(self):
+        min_length = 0
+
+        for point in self.shape:
+            min_length = min(point[0], point[1], min_length)
+
+        # Returns the top left corner and the length of the square's sides
+        return (min_length, min_length, abs(min_length) * 2, abs(min_length) * 2)
 
     def calc_shape_rotation(self):
         # Offset the shape coords by our absolute_position
