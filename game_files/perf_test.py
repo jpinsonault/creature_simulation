@@ -78,8 +78,6 @@ def main():
             timings[name] += (time_end - time_start)
 
 
-
-
     for name, timing in timings.items():
         timings[name] /= RUNS_TO_AVERAGE
 

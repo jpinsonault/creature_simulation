@@ -20,7 +20,7 @@ class GraphNode(object):
         # Reference to parent GraphNode
         self.parent = None
         # x, y, and heading are relative to the parent
-        self.position = np.array([x, y], dtype=np.int)
+        self.position = [x, y]
         self.heading = heading
 
         # Will draw to the screen if visible
@@ -40,6 +40,8 @@ class GraphNode(object):
         # sin and cos of the heading will be cached so children don't have to recalculate
         self.cos_radians = 0.0
         self.sin_radians = 0.0
+        self.cos_radians = cos(self.heading)
+        self.sin_radians = sin(self.heading)
         
     def reparent_to(self, new_parent):
         if self.parent:
@@ -86,10 +88,15 @@ class GraphNode(object):
             self.heading -= two_pi
         if self.heading < 0:
             self.heading += two_pi
+            
+        # Cache sin and cos for use by self and children
+        self.cos_radians = cos(self.heading)
+        self.sin_radians = sin(self.heading)
+
         self.position_changed = True
 
-    def set_position(self, x, y):
-        self.position = [x, y]
+    def set_position(self, position):
+        self.position = position
         self.position_changed = True
 
     def set_heading(self, heading):
@@ -98,11 +105,6 @@ class GraphNode(object):
 
     def calc_absolute_position(self):
         """Offsets and rotates our position and stores it in self.absolute_position"""
-        
-        # Cache sin and cos for use by self and children
-        self.cos_radians = cos(self.heading)
-        self.sin_radians = sin(self.heading)
-
         # Inlining it like this is ugly but faster
         self.unrotated_position[0] = self.position[0]
         self.unrotated_position[1] = self.position[1]
@@ -117,7 +119,10 @@ class GraphNode(object):
 
 
     def has_moved(self):
+        if self.position_changed:
+            return True
         if self.parent:
-            return self.position_changed or self.parent.has_moved()
-        else:
+            self.position_changed |= self.parent.has_moved()
             return self.position_changed
+        else:
+            return False

@@ -4,7 +4,7 @@ from math import sin
 
 def rotate_around(cos_radians, sin_radians, point, pivot, radians):
     """
-        Rotatoes point around pivot by radians
+        Rotates point around pivot by radians
     """
 
     p0 = point[0] - pivot[0]
@@ -14,7 +14,7 @@ def rotate_around(cos_radians, sin_radians, point, pivot, radians):
 
 def rotate_shape(cos_radians, sin_radians, shape, pivot, radians):
     """
-        Rotatoes point around pivot by radians
+        Rotatoes a list of points around pivot by radians
     """
     length = len(shape)
     index = 0

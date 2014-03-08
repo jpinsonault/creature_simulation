@@ -34,6 +34,7 @@ class Polygon(GraphNode):
 
     def draw_self(self, screen, window):
         if window.on_screen(self.absolute_position):
+            self.calc_shape_rotation()
             self.onscreen_shape_coords = [window.scale(point) for point in self.absolute_shape]
         
             draw.polygon(screen, self.color, self.onscreen_shape_coords)
@@ -45,11 +46,7 @@ class Polygon(GraphNode):
 
         return [x_mean, y_mean]
 
-    def calc_absolute_position(self):
-        # Get the position
-        super(Polygon, self).calc_absolute_position()
-        length = len(self.shape)
-    
+    def calc_shape_rotation(self):
         # Offset the shape coords by our absolute_position
         offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]] for point in self.shape]
 
@@ -59,7 +56,7 @@ class Polygon(GraphNode):
             self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
 
         self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
-        
+
 
 class Creature(Polygon):
     """
@@ -70,10 +67,6 @@ class Creature(Polygon):
 
     def __init__(self, x=0, y=0, heading=0.0, color=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
-
-    def move_and_rotate(self, dt):
-        # self.move(x_change=dt*.1)
-        self.rotate(dt*.1)
 
 
 class Food(Polygon):

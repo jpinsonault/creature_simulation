@@ -8,7 +8,8 @@ setup(
     ext_modules=[
     	Extension("PygameUtils", ["PygameUtils.py"]),
     	Extension("GraphNode", ["GraphNode.py"]),
-    	Extension("GameObjects", ["GameObjects.py"])
+    	Extension("GameObjects", ["GameObjects.py"]),
+    	Extension("Window", ["Window.py"])
     ],
     include_dirs=[numpy.get_include()]
 )

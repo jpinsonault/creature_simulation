@@ -114,8 +114,8 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(-1000, 1000, 100):
-            for y in range(-1000, 1000, 100):
+        for x in range(-1000, 1000, 50):
+            for y in range(-1000, 1000, 50):
                 new_creature = Creature(x=x, y=y, color=WHITE)
                 self.creatures.append(new_creature)
                 new_creature.reparent_to(self.scene)
