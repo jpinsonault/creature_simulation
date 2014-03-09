@@ -1,7 +1,7 @@
 import pdb
 
 class QuadTree(object):
-    def __init__(self, bounds, depth=15, max_objects=4):
+    def __init__(self, bounds, int depth=15, int max_objects=4):
         super(QuadTree, self).__init__()
         self.bounds = bounds
         self.depth = depth
@@ -59,7 +59,7 @@ class QuadTree(object):
         half_width = width / 2.0
         half_height = height / 2.0
         max_objects = self.max_objects
-        depth = self.depth - 1
+        cdef int depth = self.depth - 1
         nodes = []
 
         self.nodes = nodes
@@ -99,18 +99,20 @@ class QuadTree(object):
 
     def get_subnode_for_bounds(self, target_bounds):
         bounds = self.bounds
-        bx, by, bw, bh = bounds
-        # by = bounds[1]
-        # bw = bounds[2]
-        # bh = bounds[3]
-        bx2 = bx + bw
-        by2 = by + bh
-        tx, ty, tw, th = target_bounds
-        # ty = target_bounds[1]
-        # tw = target_bounds[2]
-        # th = target_bounds[3]
-        tx2 = tx + tw
-        ty2 = ty + th
+        # cdef int bx, by, bw, bh = bounds
+        cdef int bx = bounds[0]
+        cdef int by = bounds[1]
+        cdef int bw = bounds[2]
+        cdef int bh = bounds[3]
+        cdef int bx2 = bx + bw
+        cdef int by2 = by + bh
+        # cdef int tx, ty, tw, th = target_bounds
+        cdef int tx = target_bounds[0]
+        cdef int ty = target_bounds[1]
+        cdef int tw = target_bounds[2]
+        cdef int th = target_bounds[3]
+        cdef int tx2 = tx + tw
+        cdef int ty2 = ty + th
         # pdb.set_trace()
 
         # if either target bound's width or height is larger then half of nodes width or height it means target bounds won't fit any subnode
@@ -139,14 +141,16 @@ class QuadTree(object):
             return None
         
         bounds = self.bounds
-        bx, by, bx2, by2 = bounds
-        # by = bounds[1]
-        # bx2 = bx + bounds[2]
-        # by2 = by + bounds[3]
-        tx, ty, tx2, ty2 = target_bounds
-        # ty = target_bounds[1]
-        # tx2 = tx + target_bounds[2]
-        # ty2 = ty + target_bounds[3]
+        # cdef int bx, by, bx2, by2 = bounds
+        cdef int bx = bounds[0]
+        cdef int by = bounds[1]
+        cdef int bx2 = bx + bounds[2]
+        cdef int by2 = by + bounds[3]
+        # cdef int tx, ty, tx2, ty2 = target_bounds
+        cdef int tx = target_bounds[0]
+        cdef int ty = target_bounds[1]
+        cdef int tx2 = tx + target_bounds[2]
+        cdef int ty2 = ty + target_bounds[3]
 
         # check if node doesn't intersect with target bounds - if it doesn't return None
         if (not (tx >= bx and ty >= by and tx <= bx2 and ty <= by2) or

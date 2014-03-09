@@ -116,7 +116,9 @@ class GraphNode(object):
             self.unrotated_position[1] += parent_position[1]
             # Rotate around parent's absolute_position
             self.absolute_position = rotate_around(parent.cos_radians, parent.sin_radians, self.unrotated_position, parent.absolute_position, parent.heading)
-
+        else:
+            self.absolute_position[0] = self.position[0]
+            self.absolute_position[1] = self.position[1]
 
     def has_moved(self):
         if self.position_changed:
@@ -126,3 +128,6 @@ class GraphNode(object):
             return self.position_changed
         else:
             return False
+
+    def get_bounds(self):
+        return (self.absolute_position[0], self.absolute_position[1], 1, 1)

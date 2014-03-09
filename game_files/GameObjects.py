@@ -78,6 +78,10 @@ class Polygon(GraphNode):
 
         self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
 
+    def get_bounds(self):
+        bounds = self.bounds
+        return (bounds[0] + self.absolute_position[0], bounds[1] + self.absolute_position[0], bounds[2], bounds[3])
+
 
 class Creature(Polygon):
     """
