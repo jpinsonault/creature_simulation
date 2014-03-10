@@ -1,11 +1,19 @@
 import pdb
 
+
 class QuadTree(object):
-    def __init__(self, bounds, depth=15, max_objects=4):
+    def __init__(self, bounds, depth=7, max_objects=4, object_map = None, parent=None):
         super(QuadTree, self).__init__()
         self.bounds = bounds
         self.depth = depth
         self.max_objects = max_objects
+
+        self.parent = parent
+
+        if not object_map:
+            self.object_map = {}
+        else:
+            self.object_map = object_map
 
         self.scene_objects = []
         self.nodes = None
@@ -23,10 +31,13 @@ class QuadTree(object):
             else:
                 # else append it to the objects held by this node
                 scene_objects.append(new_object)
+                self.object_map[new_object] = self
             return
 
         # if it wasn't subdivided add the object to this node
         scene_objects.append(new_object)
+        # Point the new object to this node
+        self.object_map[new_object] = self
 
         # check if adding object didn't append it past max objects before subdividing and if it isn't max depth of the tree
         if len(scene_objects) > self.max_objects and self.depth >= 0:
@@ -50,6 +61,58 @@ class QuadTree(object):
         for scene_object in scene_objects:
             self.insert(scene_object)
 
+    def update_objects(self, scene_objects):
+        for scene_object in scene_objects:
+            self.update(scene_object)
+
+    def update(self, update_object, object_node = None):
+        # Find node object is located in
+        # print("Updating {}, length of object_map: {}".format(id(update_object), len(self.object_map)))
+        if not object_node:
+            try:
+                object_node = self.object_map[update_object]
+            except KeyError:
+                # Scene_object isn't in the quadtree for some reason
+                return
+        bounds = update_object.get_bounds()
+
+        object_node.update_to_self(update_object, bounds)
+
+    def update_to_self(self, update_object, target_bounds):
+        # If it fits in this node
+        if self.fits(target_bounds):
+            # If we have subnodes and it fits in a subnode
+            if self.nodes:
+                subnode = self.get_subnode_for_bounds(target_bounds)
+                if subnode:
+                    # Remove from self one and insert into the subnode
+                    self.remove(update_object)
+                    subnode.insert(update_object)
+                    # print("Moved to a new sub node")
+            # else it hasn't changed node, we're done
+        else:
+            if self.parent:
+                # print("Moved to a parent node")
+
+                self.parent.update_to_self(update_object, target_bounds)
+            else:
+                self.remove(update_object)
+
+    def remove_objects(self, scene_objects):
+        for scene_object in scene_objects:
+            self.remove(scene_object)
+
+    def remove(self, remove_object):
+        object_node = self.object_map[remove_object]
+
+        # Remove from the node it's in
+        object_node.remove_from_node(remove_object)
+        # Make the object_map no longer point to the old node
+        del self.object_map[remove_object]
+
+    def remove_from_node(self, remove_object):
+        self.scene_objects.remove(remove_object)
+
     def subdivide(self):
         bounds = self.bounds
         x = bounds[0]
@@ -71,7 +134,7 @@ class QuadTree(object):
             y,
             half_width,
             half_height
-        ), depth, max_objects))
+        ), depth, max_objects, self.object_map, self))
         
         # top right
         nodes.append(QuadTree((
@@ -79,7 +142,7 @@ class QuadTree(object):
             y,
             half_width,
             half_height
-        ), depth, max_objects))
+        ), depth, max_objects, self.object_map, self))
         
         # bottom left
         nodes.append(QuadTree((
@@ -87,7 +150,7 @@ class QuadTree(object):
             y + half_height,
             half_width,
             half_height
-        ), depth, max_objects))
+        ), depth, max_objects, self.object_map, self))
         
         # bottom right
         nodes.append(QuadTree((
@@ -95,11 +158,20 @@ class QuadTree(object):
             y + half_height,
             half_width,
             half_height
-        ), depth, max_objects))
+        ), depth, max_objects, self.object_map, self))
+
+    def fits(self, target_bounds):
+        bx, by, bw, bh = self.bounds
+        tx, ty, tw, th = target_bounds
+
+        # If the top left and bottom right fit, it fits
+        return tx >= bx and ty >= by and tx + tw <= bx + bw and ty + th <= by + bh
 
     def get_subnode_for_bounds(self, target_bounds):
         bounds = self.bounds
         bx, by, bw, bh = bounds
+        bh_half = bh / 2.0
+        bw_half = bw / 2.0
         # by = bounds[1]
         # bw = bounds[2]
         # bh = bounds[3]
@@ -111,22 +183,21 @@ class QuadTree(object):
         # th = target_bounds[3]
         tx2 = tx + tw
         ty2 = ty + th
-        # pdb.set_trace()
 
         # if either target bound's width or height is larger then half of nodes width or height it means target bounds won't fit any subnode
-        if tw > bw / 2.0 or th > bh / 2.0:
+        if tw > bw_half or th > bh_half:
             return None
         # check if it fits top left node
-        elif tx >= bx and ty >= by and tx2 <= bx + bw / 2.0 and ty2 <= by + bh / 2.0:
+        elif tx >= bx and ty >= by and tx2 <= bx + bw_half and ty2 <= by + bh_half:
             return self.nodes[0]
         # check if it fits top right node
-        elif tx >= bx + bw / 2.0 and ty >= by and tx2 <= bx2 and ty2 <= by + bh / 2.0:
+        elif tx >= bx + bw_half and ty >= by and tx2 <= bx2 and ty2 <= by + bh_half:
             return self.nodes[1]
         # check if it fits bottom left node
-        elif tx >= bx and ty >= by + bh / 2.0 and tx2 <= bx + bw / 2.0 and ty2 <= by2:
+        elif tx >= bx and ty >= by + bh_half and tx2 <= bx + bw_half and ty2 <= by2:
             return self.nodes[2]
         # check if it fits bottom right node
-        elif tx >= bx + bw / 2.0 and ty >= by + bh / 2.0 and tx2 <= bx2 and ty2 <= by2:
+        elif tx >= bx + bw_half and ty >= by + bh_half and tx2 <= bx2 and ty2 <= by2:
             return self.nodes[3]
         
         # otherwise it means target bounds overlap more then one subnode and it needs to be added to this node
