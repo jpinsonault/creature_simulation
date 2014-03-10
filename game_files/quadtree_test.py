@@ -35,7 +35,7 @@ def main():
 
     camera = Window(800, 800, x=0, y=0)
 
-    for x in range(500):
+    for x in range(50):
         new_creature = Creature(x=randrange(-1500, 1500), y=randrange(-1500, 1500), color=WHITE)
         creatures.append(new_creature)
         new_creature.calc_absolute_position()
@@ -44,6 +44,8 @@ def main():
     # Simulate 60 frames
     tree = make_tree(creatures)
     print("{} scene objects".format(len(creatures)))
+    print("Tree max_depth: {}".format(tree.depth))
+
     for x in xrange(60):
         move_creatures(creatures)
         tree.update_objects(creatures)
@@ -54,7 +56,7 @@ def main():
 
     x, y = camera.position[0], camera.position[1]
     camera_bounds = (0, 0, 100, 100)
-    # tree.print_tree()
+    tree.print_tree()
     # print(len(tree.get_objects_at_bounds(camera_bounds)))
 
 if __name__ == '__main__':

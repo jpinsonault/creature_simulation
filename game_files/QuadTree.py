@@ -1,4 +1,5 @@
 import pdb
+import pygame
 
 
 class QuadTree(object):
@@ -10,6 +11,7 @@ class QuadTree(object):
 
         self.parent = parent
 
+        # For quick look up of nodes
         if not object_map:
             self.object_map = {}
         else:
@@ -65,6 +67,8 @@ class QuadTree(object):
         for scene_object in scene_objects:
             self.update(scene_object)
 
+        self.trim_empty_nodes()
+
     def update(self, update_object, object_node = None):
         # Find node object is located in
         # print("Updating {}, length of object_map: {}".format(id(update_object), len(self.object_map)))
@@ -92,11 +96,17 @@ class QuadTree(object):
             # else it hasn't changed node, we're done
         else:
             if self.parent:
-                # print("Moved to a parent node")
-
+                # Moved to a parent node"
                 self.parent.update_to_self(update_object, target_bounds)
             else:
                 self.remove(update_object)
+
+    def fits(self, target_bounds):
+        bx, by, bw, bh = self.bounds
+        tx, ty, tw, th = target_bounds
+
+        # If the top left and bottom right fit, it fits
+        return tx >= bx and ty >= by and tx + tw <= bx + bw and ty + th <= by + bh
 
     def remove_objects(self, scene_objects):
         for scene_object in scene_objects:
@@ -112,6 +122,26 @@ class QuadTree(object):
 
     def remove_from_node(self, remove_object):
         self.scene_objects.remove(remove_object)
+
+    def trim_empty_nodes(self):
+        """
+            Returns true if parent should delete it's nodes
+        """
+        if self.nodes:
+            # If all subnodes are empty
+            if all((subnode.trim_empty_nodes() for subnode in self.nodes)):
+                self.nodes = None
+            else:
+                # Return false if any of the children's children have scene_objects left
+                return False
+        else:
+            # We're at a leaf node now
+            if not self.scene_objects:
+                # Delete me
+                return True
+            else:
+                # Don't delete me
+                return False
 
     def subdivide(self):
         bounds = self.bounds
@@ -160,13 +190,6 @@ class QuadTree(object):
             half_height
         ), depth, max_objects, self.object_map, self))
 
-    def fits(self, target_bounds):
-        bx, by, bw, bh = self.bounds
-        tx, ty, tw, th = target_bounds
-
-        # If the top left and bottom right fit, it fits
-        return tx >= bx and ty >= by and tx + tw <= bx + bw and ty + th <= by + bh
-
     def get_subnode_for_bounds(self, target_bounds):
         bounds = self.bounds
         bx, by, bw, bh = bounds
@@ -184,7 +207,7 @@ class QuadTree(object):
         tx2 = tx + tw
         ty2 = ty + th
 
-        # if either target bound's width or height is larger then half of nodes width or height it means target bounds won't fit any subnode
+        # if either target bound's width or height is larger then half of node's width or height it means target bounds won't fit any subnode
         if tw > bw_half or th > bh_half:
             return None
         # check if it fits top left node
@@ -210,19 +233,19 @@ class QuadTree(object):
             return None
         
         bounds = self.bounds
-        bx, by, bx2, by2 = bounds
+        # bx, by, bx2, by2 = bounds
+        bx, by, bw, bh = bounds
         # by = bounds[1]
-        # bx2 = bx + bounds[2]
-        # by2 = by + bounds[3]
-        tx, ty, tx2, ty2 = target_bounds
+        bx2 = bx + bw
+        by2 = by + bh
+        # tx, ty, tx2, ty2 = target_bounds
+        tx, ty, tw, th = target_bounds
         # ty = target_bounds[1]
-        # tx2 = tx + target_bounds[2]
-        # ty2 = ty + target_bounds[3]
+        tx2 = tx + tw
+        ty2 = ty + th
 
         # check if node doesn't intersect with target bounds - if it doesn't return None
-        if (not (tx >= bx and ty >= by and tx <= bx2 and ty <= by2) or
-            not (tx2 >= bx and ty2 >= by and tx2 <= bx2 and ty2 <= by2) or
-            not (tx <= bx2 and ty <= by2 and tx2 >= bx and ty2 >= by)):
+        if (tx >= bx2 or ty >= by2 or tx2 <= bx or ty2 <= by):
             return None
         
 
@@ -258,6 +281,62 @@ class QuadTree(object):
         
         return None
 
+    def get_nodes_at_bounds(self, target_bounds):
+        """
+            Returns all of the nodes at the bounds, good for drawing the tree
+        """
+        nodes = self.nodes
+        if not nodes:
+            return None
+
+        bounds = self.bounds
+        # bx, by, bx2, by2 = bounds
+        bx, by, bw, bh = bounds
+        # by = bounds[1]
+        bx2 = bx + bw
+        by2 = by + bh
+        # tx, ty, tx2, ty2 = target_bounds
+        tx, ty, tw, th = target_bounds
+        # ty = target_bounds[1]
+        tx2 = tx + tw
+        ty2 = ty + th
+
+        # check if node doesn't intersect with target bounds - if it doesn't return None
+        if (tx >= bx2 or ty >= by2 or tx2 <= bx or ty2 <= by):
+            return None
+        
+        # if the node is fully overlaped by bounds then add all its objects and all objects which are held by subnodes and their subnodes
+        if (tx <= bx and ty <= by and tx2 >= bx2 and ty2 >= by2):
+            return self.get_all_nodes()
+        
+
+        # if its in bounds add all the nodes from this node to potentially intersecting nodes array
+        found_nodes = self.nodes[:]
+
+        # if node has subnodes check them recursively for potentially intersecting objects
+        if nodes:
+            subnodes = nodes[0].get_nodes_at_bounds(target_bounds)
+            if subnodes:
+                found_nodes += subnodes
+            
+            subnodes = nodes[1].get_nodes_at_bounds(target_bounds)
+            if subnodes:
+                found_nodes += subnodes
+            
+            subnodes = nodes[2].get_nodes_at_bounds(target_bounds)
+            if subnodes:
+                found_nodes += subnodes
+            
+            subnodes = nodes[3].get_nodes_at_bounds(target_bounds)
+            if subnodes:
+                found_nodes += subnodes
+            
+        
+        if found_nodes:
+            return found_nodes
+        
+        return None
+
     def get_all_objects(self):
         found_objects = self.scene_objects[:]
 
@@ -282,6 +361,34 @@ class QuadTree(object):
                 found_objects += subnode_objects
 
         return found_objects
+
+    def get_all_nodes(self):
+        if not self.nodes:
+            return None
+        
+        found_nodes = self.nodes[:]
+
+        # check if node has subnodes
+        if self.nodes:
+            nodes = self.nodes
+            # if yes recursively get all nodes held by its subnodes and their subnodes
+            subnodes = nodes[0].get_all_nodes()
+            if subnodes:
+                found_nodes += subnodes
+            
+            subnodes = nodes[1].get_all_nodes()
+            if subnodes:
+                found_nodes += subnodes
+            
+            subnodes = nodes[2].get_all_nodes()
+            if subnodes:
+                found_nodes += subnodes
+            
+            subnodes = nodes[3].get_all_nodes()
+            if subnodes:
+                found_nodes += subnodes
+
+        return found_nodes
 
     def wipe(self):
         if self.nodes:
@@ -316,6 +423,15 @@ class QuadTree(object):
             print_(depth, "Bottom Right:")
             self.nodes[3].print_tree(depth + 1)
 
-    def draw_tree(self, screen):
+
+    def draw_tree(self, screen, camera):
         """Draws the bounds of all the nodes to the screen"""
-        pass
+        visible_nodes = self.get_nodes_at_bounds(camera.get_bounds())
+        # visible_nodes = self.get_all_nodes()
+        if visible_nodes:
+            print(len(visible_nodes))
+            for node in visible_nodes:
+                scaled_rect = camera.scale_rect(node.bounds)
+                pygame.draw.rect(screen, (0, 255, 0), scaled_rect, 1)
+
+

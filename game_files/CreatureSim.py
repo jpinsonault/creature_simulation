@@ -2,13 +2,15 @@ import os
 import pygame
 import sys
 import random
+from random import randrange
 from pygame import draw
 from pygame.locals import *
 from collections import deque
 from GameObjects import Background
 from GameObjects import Creature
 from GameObjects import Food
-from Window import Window
+from Camera import Camera
+from QuadTree import QuadTree
 
 BLACK = (  0,   0,   0)
 WHITE = (255, 255, 255)
@@ -43,16 +45,20 @@ class CreatureSim(PyGameBase):
     """Runs the creature sim game"""
 
     CAMERA_MOVE_SPEED = .5
-    WIDTH = 1100
-    HEIGHT = 900
+    CAM_WIDTH = 800
+    CAM_HEIGHT = 800
+    WORLD_WIDTH = 5000
+    WORLD_HEIGHT = 5000
 
     def __init__(self):
         super(CreatureSim, self).__init__()
         self.running = True
-        # self.camera = Window(self.WIDTH, self.HEIGHT, x=-(self.WIDTH / 2), y=-(self.HEIGHT / 2))
-        self.camera = Window(self.WIDTH, self.HEIGHT, x=0, y=0)
+        # self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=-(self.CAM_WIDTH / 2), y=-(self.CAM_HEIGHT / 2))
+        self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=0, y=0, zoom=5.0)
         self.scene = Background()
-        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self.screen = pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
+        # QuadTree for collision detection
+        self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=4)
 
         self.clock = pygame.time.Clock()
         self.dt = 0
@@ -82,13 +88,13 @@ class CreatureSim(PyGameBase):
 
         # Camera movement
         if self.key_presses["cam-up"]:
-            self.camera.move(y_change=self.dt * self.CAMERA_MOVE_SPEED)
-        if self.key_presses["cam-down"]:
             self.camera.move(y_change=-self.dt * self.CAMERA_MOVE_SPEED)
+        if self.key_presses["cam-down"]:
+            self.camera.move(y_change=self.dt * self.CAMERA_MOVE_SPEED)
         if self.key_presses["cam-left"]:
-            self.camera.move(x_change=self.dt * self.CAMERA_MOVE_SPEED)
-        if self.key_presses["cam-right"]:
             self.camera.move(x_change=-self.dt * self.CAMERA_MOVE_SPEED)
+        if self.key_presses["cam-right"]:
+            self.camera.move(x_change=self.dt * self.CAMERA_MOVE_SPEED)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -114,14 +120,13 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(-1000, 1000, 50):
-            for y in range(-1000, 1000, 50):
-                new_creature = Creature(x=x, y=y, color=WHITE)
-                self.creatures.append(new_creature)
-                new_creature.reparent_to(self.scene)
-
-        self.camera.reparent_to(self.scene)
-
+        for x in range(50):
+            new_creature = Creature(x=randrange(-1500, 1500), y=randrange(-1500, 1500), color=WHITE)
+            self.creatures.append(new_creature)
+            new_creature.reparent_to(self.scene)
+            new_creature.calc_absolute_position()
+            
+        self.quadtree.insert_objects(self.creatures)
 
         print("Num Creatures: {}".format(len(self.creatures)))
 
@@ -131,15 +136,17 @@ class CreatureSim(PyGameBase):
         self.screen.fill(BLACK)
 
         self.scene.draw(self.screen, self.camera)
+        self.quadtree.draw_tree(self.screen, self.camera)
         
         pygame.display.flip()
 
     def update_positions(self):
         pass
-        for creature in self.creatures:
-            creature.rotate(self.dt * -.001)
+        # for creature in self.creatures:
+            # creature.rotate(self.dt * -.001)
 
-        # self.scene.rotate(self.dt * .001)
+        self.scene.rotate(self.dt * .0001)
+        self.quadtree.update_objects(self.creatures)
 
     def setup_keys(self):
         """Sets up key presses"""

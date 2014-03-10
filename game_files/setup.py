@@ -9,7 +9,7 @@ setup(
     	Extension("PygameUtils", ["PygameUtils.py"]),
     	Extension("GraphNode", ["GraphNode.py"]),
     	Extension("GameObjects", ["GameObjects.py"]),
-        Extension("Window", ["Window.py"]),
+        Extension("Camera", ["Camera.py"]),
     	Extension("QuadTree", ["QuadTree.pyx"])
     ],
     include_dirs=[numpy.get_include()]

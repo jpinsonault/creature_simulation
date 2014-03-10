@@ -18,7 +18,7 @@ class Background(GraphNode):
     def __init__(self, x=0, y=0, heading=0.0):
         super(Background, self).__init__(x, y, heading)
 
-    def draw_self(self, screen, window):
+    def draw_self(self, screen, camera):
         pass
 
 
@@ -35,10 +35,10 @@ class Polygon(GraphNode):
 
         self.bounds = self.get_bounding_square()
 
-    def draw_self(self, screen, window):
-        if window.on_screen(self.absolute_position):
+    def draw_self(self, screen, camera):
+        if camera.on_screen(self.absolute_position):
             self.calc_shape_rotation()
-            self.onscreen_shape_coords = [window.scale(point) for point in self.absolute_shape]
+            self.onscreen_shape_coords = [camera.scale(point) for point in self.absolute_shape]
         
             draw.polygon(screen, self.color, self.onscreen_shape_coords)
 
@@ -80,7 +80,7 @@ class Polygon(GraphNode):
 
     def get_bounds(self):
         bounds = self.bounds
-        return (bounds[0] + self.absolute_position[0], bounds[1] + self.absolute_position[0], bounds[2], bounds[3])
+        return (bounds[0] + self.absolute_position[0], bounds[1] + self.absolute_position[1], bounds[2], bounds[3])
 
 
 class Creature(Polygon):
