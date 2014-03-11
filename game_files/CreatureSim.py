@@ -47,8 +47,8 @@ class CreatureSim(PyGameBase):
     CAMERA_MOVE_SPEED = .5
     CAM_WIDTH = 800
     CAM_HEIGHT = 800
-    WORLD_WIDTH = 5000
-    WORLD_HEIGHT = 5000
+    WORLD_WIDTH = 10000
+    WORLD_HEIGHT = 10000
 
     def __init__(self):
         super(CreatureSim, self).__init__()
@@ -58,10 +58,13 @@ class CreatureSim(PyGameBase):
         self.scene = Background()
         self.screen = pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
         # QuadTree for collision detection
-        self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=4)
+        self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=6)
 
         self.clock = pygame.time.Clock()
         self.dt = 0
+
+        # Will draw the quadtree overlay if true
+        self.draw_quadtree = False
 
     def run(self):
         self.load()
@@ -76,10 +79,10 @@ class CreatureSim(PyGameBase):
 
             self.handle_events()
             self.update_positions()
-            self.move_camera()
+            self.handle_key_presses()
             self.render_frame()
 
-    def move_camera(self):
+    def handle_key_presses(self):
         # Camera Zoom
         if self.key_presses["zoom-in"]:
             self.camera.zoom_in(self.dt)
@@ -101,9 +104,9 @@ class CreatureSim(PyGameBase):
             if event.type == pygame.QUIT:
                 sys.exit()
 
-            self.handle_key_press(event)
+            self.register_key_presses(event)
 
-    def handle_key_press(self, event):
+    def register_key_presses(self, event):
         if event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 raise SystemExit()
@@ -111,6 +114,11 @@ class CreatureSim(PyGameBase):
                 self.key_presses[self.key_map[event.key]] = True
             except KeyError:
                 pass
+
+            if event.key == K_t:
+                self.draw_quadtree = not self.draw_quadtree
+
+        ########################
         if event.type == KEYUP:
             try:
                 self.key_presses[self.key_map[event.key]] = False
@@ -120,7 +128,7 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(50):
+        for x in range(400):
             new_creature = Creature(x=randrange(-1500, 1500), y=randrange(-1500, 1500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
@@ -136,7 +144,8 @@ class CreatureSim(PyGameBase):
         self.screen.fill(BLACK)
 
         self.scene.draw(self.screen, self.camera)
-        self.quadtree.draw_tree(self.screen, self.camera)
+        if self.draw_quadtree:
+            self.quadtree.draw_tree(self.screen, self.camera)
         
         pygame.display.flip()
 
@@ -145,7 +154,7 @@ class CreatureSim(PyGameBase):
         # for creature in self.creatures:
             # creature.rotate(self.dt * -.001)
 
-        self.scene.rotate(self.dt * .0001)
+        self.scene.rotate(self.dt * .0005)
         self.quadtree.update_objects(self.creatures)
 
     def setup_keys(self):
@@ -156,7 +165,7 @@ class CreatureSim(PyGameBase):
             K_a: "cam-left",
             K_d: "cam-right",
             K_e: "zoom-out",
-            K_q: "zoom-in"
+            K_q: "zoom-in",
         }
 
         self.register_keys(key_map)

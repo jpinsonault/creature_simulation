@@ -3,7 +3,7 @@ import pygame
 
 
 class QuadTree(object):
-    def __init__(self, bounds, depth=7, max_objects=4, object_map = None, parent=None):
+    def __init__(self, bounds, depth=7, max_objects=2, object_map = None, parent=None):
         super(QuadTree, self).__init__()
         self.bounds = bounds
         self.depth = depth
@@ -129,7 +129,7 @@ class QuadTree(object):
         """
         if self.nodes:
             # If all subnodes are empty
-            if all((subnode.trim_empty_nodes() for subnode in self.nodes)):
+            if all([subnode.trim_empty_nodes() for subnode in self.nodes]):
                 self.nodes = None
             else:
                 # Return false if any of the children's children have scene_objects left
@@ -428,8 +428,8 @@ class QuadTree(object):
         """Draws the bounds of all the nodes to the screen"""
         visible_nodes = self.get_nodes_at_bounds(camera.get_bounds())
         # visible_nodes = self.get_all_nodes()
+
         if visible_nodes:
-            print(len(visible_nodes))
             for node in visible_nodes:
                 scaled_rect = camera.scale_rect(node.bounds)
                 pygame.draw.rect(screen, (0, 255, 0), scaled_rect, 1)
