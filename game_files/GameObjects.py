@@ -96,7 +96,7 @@ class Creature(Polygon):
     def __init__(self, x=0, y=0, heading=0.0, color=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
-        self.nn = NeuralNetwork(3, 8, 2)
+        self.nn = NeuralNetwork(3, 7, 2)
         self.nn.initialize_random_network(.2)
 
 

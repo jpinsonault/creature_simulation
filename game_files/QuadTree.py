@@ -195,15 +195,12 @@ class QuadTree(object):
         bx, by, bw, bh = bounds
         bh_half = bh / 2.0
         bw_half = bw / 2.0
-        # by = bounds[1]
-        # bw = bounds[2]
-        # bh = bounds[3]
+
         bx2 = bx + bw
         by2 = by + bh
+
         tx, ty, tw, th = target_bounds
-        # ty = target_bounds[1]
-        # tw = target_bounds[2]
-        # th = target_bounds[3]
+        
         tx2 = tx + tw
         ty2 = ty + th
 
