@@ -1,8 +1,10 @@
 import os
 import pygame
 import sys
+sys.path.insert(0, '../')
 import random
 from random import randrange
+from random import uniform
 from pygame import draw
 from pygame.locals import *
 from collections import deque
@@ -107,6 +109,8 @@ class CreatureSim(PyGameBase):
             self.register_key_presses(event)
 
     def register_key_presses(self, event):
+        # Key Down
+        ########################
         if event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 raise SystemExit()
@@ -118,6 +122,7 @@ class CreatureSim(PyGameBase):
             if event.key == K_t:
                 self.draw_quadtree = not self.draw_quadtree
 
+        # Key Up
         ########################
         if event.type == KEYUP:
             try:
@@ -128,7 +133,7 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(400):
+        for x in range(1000):
             new_creature = Creature(x=randrange(-1500, 1500), y=randrange(-1500, 1500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
@@ -150,11 +155,11 @@ class CreatureSim(PyGameBase):
         pygame.display.flip()
 
     def update_positions(self):
-        pass
-        # for creature in self.creatures:
-            # creature.rotate(self.dt * -.001)
+        for creature in self.creatures:
+            creature.rotate(self.dt * -.001)
+            creature.move_forward(.1 * self.dt)
 
-        self.scene.rotate(self.dt * .0005)
+        # self.scene.rotate(self.dt * .0005)
         self.quadtree.update_objects(self.creatures)
 
     def setup_keys(self):

@@ -14,7 +14,7 @@ class GraphNode(object):
         A node in the scene graph.
         Handles drawing itself to the screen as well as other related functions
     """
-    def __init__(self, x=0.0, y=0.0, heading=0.0):
+    def __init__(self, x=0.0, y=0.0, heading=pi/2.0):
         super(GraphNode, self).__init__()
 
         # Reference to parent GraphNode
@@ -38,8 +38,6 @@ class GraphNode(object):
         self.position_changed = True
 
         # sin and cos of the heading will be cached so children don't have to recalculate
-        self.cos_radians = 0.0
-        self.sin_radians = 0.0
         self.cos_radians = cos(self.heading)
         self.sin_radians = sin(self.heading)
         
@@ -75,9 +73,14 @@ class GraphNode(object):
         for child in self.children:
             child.draw(screen, window)
 
-    def move(self, x_change=0, y_change=0):
+    def move_forward(self, x_change=0, y_change=0):
         self.position[0] += x_change
         self.position[1] += y_change
+        self.position_changed = True
+
+    def move_forward(self, change):
+        self.position[0] = change * self.cos_radians + self.position[0]
+        self.position[1] = change * self.sin_radians + self.position[1]
         self.position_changed = True
 
     def rotate(self, angle_change):
