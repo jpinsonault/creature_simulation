@@ -2,6 +2,8 @@
     Holds objects that subclass the GraphNode class
     Creatures, Food, etc
 """
+import sys
+sys.path.insert(0, '../')
 from pygame import draw
 from GraphNode import GraphNode
 from operator import add
@@ -11,6 +13,8 @@ from math import sqrt
 from pprint import pprint
 from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
+
+from NeuralNetworks.NeuralNetwork import NeuralNetwork
 
 
 class Background(GraphNode):
@@ -91,6 +95,9 @@ class Creature(Polygon):
 
     def __init__(self, x=0, y=0, heading=0.0, color=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+
+        self.nn = NeuralNetwork(3, 8, 2)
+        self.nn.initialize_random_network(.2)
 
 
 class Food(Polygon):

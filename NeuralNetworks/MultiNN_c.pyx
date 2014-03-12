@@ -5,7 +5,9 @@ cimport numpy as np
 from math import tanh
 
 NP_FLOAT = np.float
+DTYPE = np.int
 ctypedef np.float_t NP_FLOAT_t
+ctypedef np.int_t DTYPE_t
 
 
 cdef class MultiNN_c:
@@ -59,7 +61,7 @@ cdef class MultiNN_c:
     def get_networks(self):
         return self.networks
 
-    def set_networks(self, networks):
+    def set_networks(self, np.ndarray networks):
         self.networks = networks
 
     def get_outputs(self):
@@ -69,7 +71,7 @@ cdef class MultiNN_c:
         for network in self.networks:
             print(network)
 
-    def print_network(self, nn_index):
+    def print_network(self, np.ndarray nn_index):
         print(self.networks[nn_index])
 
     def compute_all_networks(self):
@@ -117,7 +119,7 @@ cdef class MultiNN_c:
             outputs[output_index] += weights[weights_index]
             weights_index += 1
 
-    def hyperTan(self, float x):
+    cpdef float hyperTan(self, float x):
         if x < -20.0:
             return -1.0
         elif x > 20.0:

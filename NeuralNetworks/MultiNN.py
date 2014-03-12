@@ -6,6 +6,7 @@ from os.path import join
 from math import tanh
 from mako.template import Template
 from unicodedata import normalize
+from random import uniform
 
 
 class MultiNN:
@@ -19,18 +20,24 @@ class MultiNN:
         self.num_hidden = num_hidden
         self.num_outputs = num_outputs
         self.num_weights = (num_inputs * num_hidden) + (num_hidden * num_outputs) + num_hidden + num_outputs
-        self.networks = numpy.zeros((num_networks, self.num_weights))
-        self.inputs = numpy.zeros((num_networks, num_inputs))
-        self.outputs = numpy.zeros((num_networks, num_outputs))
+        self.networks = [[0 for x in xrange(self.num_weights)] for y in xrange(num_networks)]
+        # self.networks = numpy.zeros((num_networks, self.num_weights))
+        self.inputs = [[0 for x in xrange(num_inputs)] for y in xrange(num_networks)]
+        # self.inputs = numpy.zeros((num_networks, num_inputs))
+        self.outputs = [[0 for x in xrange(num_outputs)] for y in xrange(num_networks)]
+        # self.outputs = numpy.zeros((num_networks, num_outputs))
 
         # Buffers for calculations
-        self.hidden_sums = numpy.zeros((num_networks, num_hidden))
         # self.hidden_sums = numpy.zeros((num_networks, num_hidden))
-        self.hidden_outputs = numpy.zeros((num_networks, num_hidden))
+        self.hidden_sums = [[0 for x in xrange(num_hidden)] for y in xrange(num_networks)]
+        # self.hidden_sums = numpy.zeros((num_networks, num_hidden))
+        # self.hidden_outputs = numpy.zeros((num_networks, num_hidden))
+        self.hidden_outputs = [[0 for x in xrange(num_hidden)] for y in xrange(num_networks)]
 
     def initialize_random_networks(self, limit):
-        self.networks = numpy.random.rand(self.num_networks, self.num_weights)
-        self.networks = (self.networks - .5) * (limit * 2)
+        # self.networks = numpy.random.rand(self.num_networks, self.num_weights)
+        self.networks = [[uniform(-limit, limit) for x in xrange(self.num_weights)] for y in xrange(self.num_networks)]
+        # self.networks = (self.networks - .5) * (limit * 2)
 
     def set_inputs(self, nn_index, inputs):
         if inputs.shape != (self.num_inputs):

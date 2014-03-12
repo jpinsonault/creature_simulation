@@ -133,7 +133,7 @@ class CreatureSim(PyGameBase):
     def load(self):
         self.creatures = []
 
-        for x in range(1000):
+        for x in range(500):
             new_creature = Creature(x=randrange(-1500, 1500), y=randrange(-1500, 1500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
@@ -156,8 +156,10 @@ class CreatureSim(PyGameBase):
 
     def update_positions(self):
         for creature in self.creatures:
-            creature.rotate(self.dt * -.001)
-            creature.move_forward(.1 * self.dt)
+            network = creature.nn
+            network.compute_network()
+            creature.rotate(self.dt * network.outputs[0] / 50.0)
+            creature.move_forward(self.dt * network.outputs[1])
 
         # self.scene.rotate(self.dt * .0005)
         self.quadtree.update_objects(self.creatures)
