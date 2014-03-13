@@ -8,7 +8,7 @@ class Camera(GraphNode):
         zooming
     """
     MIN_ZOOM = 0.08
-    MAX_ZOOM = 10.0
+    MAX_ZOOM = 40.0
 
     def __init__(self, width, height, x=0, y=0, zoom = 1.0, zoom_speed = 0.001):
         super(Camera, self).__init__(x=x, y=y)
@@ -20,19 +20,19 @@ class Camera(GraphNode):
         self.zoom_speed = zoom_speed
 
     def zoom_in(self, dt):
-        self.zoom += dt * self.zoom_speed
+        self.zoom += dt * self.zoom_speed * self.zoom
         self.zoom = max(self.zoom, self.MIN_ZOOM)
         self.zoom = min(self.zoom, self.MAX_ZOOM)
 
     def zoom_out(self, dt):
-        self.zoom -= dt * self.zoom_speed
+        self.zoom -= dt * self.zoom_speed * self.zoom
         self.zoom = max(self.zoom, self.MIN_ZOOM)
         self.zoom = min(self.zoom, self.MAX_ZOOM)
 
     def move(self, x_change=0, y_change=0):
 
-        self.position[0] += x_change
-        self.position[1] += y_change
+        self.position[0] += x_change * (self.zoom)
+        self.position[1] += y_change * (self.zoom)
         self.position_changed = True
 
     def scale(self, point):

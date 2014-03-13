@@ -49,8 +49,8 @@ class CreatureSim(PyGameBase):
     CAMERA_MOVE_SPEED = .5
     CAM_WIDTH = 800
     CAM_HEIGHT = 800
-    WORLD_WIDTH = 10000
-    WORLD_HEIGHT = 10000
+    WORLD_WIDTH = 100000
+    WORLD_HEIGHT = 100000
 
     def __init__(self):
         super(CreatureSim, self).__init__()
@@ -60,7 +60,7 @@ class CreatureSim(PyGameBase):
         self.scene = Background()
         self.screen = pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
         # QuadTree for collision detection
-        self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=6)
+        self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=9)
 
         self.clock = pygame.time.Clock()
         self.dt = 0
