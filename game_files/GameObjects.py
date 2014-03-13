@@ -104,7 +104,7 @@ class Food(Polygon):
     """
         Object representing the creature on screen
     """
-    BASE_SHAPE = [[0,0], [10, 0], [10, -10], [0, -10]]
+    BASE_SHAPE = [[-20, -20], [20, -20], [20, 20], [-20, 20]]
 
-    def __init__(self, x=0, y=0, heading=0.0):
-        super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading)
+    def __init__(self, x=0, y=0, heading=0.0, color=None):
+        super(Food, self).__init__(self.BASE_SHAPE, x, y, heading, color)

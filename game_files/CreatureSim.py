@@ -132,14 +132,22 @@ class CreatureSim(PyGameBase):
 
     def load(self):
         self.creatures = []
+        self.foods = []
 
         for x in range(400):
-            new_creature = Creature(x=randrange(-1500, 1500), y=randrange(-1500, 1500), color=WHITE)
+            new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
             new_creature.calc_absolute_position()
+
+        for x in range(75):
+            new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=BLUE)
+            self.foods.append(new_food)
+            new_food.reparent_to(self.scene)
+            new_food.calc_absolute_position()
             
         self.quadtree.insert_objects(self.creatures)
+        self.quadtree.insert_objects(self.foods)
 
         print("Num Creatures: {}".format(len(self.creatures)))
 
