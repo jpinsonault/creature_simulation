@@ -11,7 +11,7 @@ setup(
     	Extension("GraphNode", ["GraphNode.py"]),
     	Extension("GameObjects", ["GameObjects.py"]),
         Extension("Camera", ["Camera.py"]),
-    	Extension("QuadTree", ["QuadTree.py"])
+    	Extension("QuadTree", ["QuadTree.pyx"])
     ],
     include_dirs=[numpy.get_include()]
 )

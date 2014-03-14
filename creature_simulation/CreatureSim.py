@@ -80,9 +80,28 @@ class CreatureSim(PyGameBase):
             self.dt = self.clock.tick()
 
             self.handle_events()
-            self.update_positions()
             self.handle_key_presses()
+
+            self.update_creature_positions()
+            self.hand_collisions()
             self.render_frame()
+
+    def render_frame(self):
+        pygame.display.set_caption(str(self.clock.get_fps()))
+
+        self.screen.fill(BLACK)
+
+        self.scene.draw(self.screen, self.camera)
+        if self.draw_quadtree:
+            self.quadtree.draw_tree(self.screen, self.camera)
+        
+        pygame.display.flip()
+
+    def hand_collisions(self):
+        # possible_collisions = self.quadtree.get_possible_collisions()
+
+        # print(possible_collisions)
+        pass
 
     def handle_key_presses(self):
         # Camera Zoom
@@ -141,7 +160,7 @@ class CreatureSim(PyGameBase):
             new_creature.calc_absolute_position()
 
         for x in range(75):
-            new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=BLUE)
+            new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=RED)
             self.foods.append(new_food)
             new_food.reparent_to(self.scene)
             new_food.calc_absolute_position()
@@ -151,18 +170,7 @@ class CreatureSim(PyGameBase):
 
         print("Num Creatures: {}".format(len(self.creatures)))
 
-    def render_frame(self):
-        pygame.display.set_caption(str(self.clock.get_fps()))
-
-        self.screen.fill(BLACK)
-
-        self.scene.draw(self.screen, self.camera)
-        if self.draw_quadtree:
-            self.quadtree.draw_tree(self.screen, self.camera)
-        
-        pygame.display.flip()
-
-    def update_positions(self):
+    def update_creature_positions(self):
         for creature in self.creatures:
             network = creature.nn
             network.compute_network()

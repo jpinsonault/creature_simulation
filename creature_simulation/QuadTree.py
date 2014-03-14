@@ -96,7 +96,7 @@ class QuadTree(object):
             # else it hasn't changed node, we're done
         else:
             if self.parent:
-                # Moved to a parent node"
+                # Moved to a parent node
                 self.parent.update_to_self(update_object, target_bounds)
             else:
                 self.remove(update_object)
