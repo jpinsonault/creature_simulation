@@ -104,6 +104,7 @@ class CreatureSim(PyGameBase):
     def hand_collisions(self):
         possible_collisions = self.quadtree.get_all_collisions()
 
+        # print("Objects:")
         # pprint(possible_collisions)
         pass
 
@@ -160,7 +161,7 @@ class CreatureSim(PyGameBase):
         self.creatures = []
         self.foods = []
 
-        for x in range(800):
+        for x in range(500):
             new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)

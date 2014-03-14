@@ -42,7 +42,7 @@ class GraphNode(object):
         self.sin_radians = sin(self.heading)
 
     def __repr__(self):
-        return "{} at {}, {}".format(self.__class__.__name__, self.position[0], self.position[1])
+        return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
         
     def reparent_to(self, new_parent):
         if self.parent:

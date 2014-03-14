@@ -1,5 +1,6 @@
 import pygame
 import pdb
+import sys
 from pprint import pprint
 
 
@@ -449,12 +450,15 @@ class QuadTree(object):
                 scaled_rect = camera.scale_rect(node.bounds)
                 pygame.draw.rect(screen, (0, 255, 0), scaled_rect, 1)
 
+    count = 0
     def get_all_collisions(self):
         """
             Look through the whole tree and return a list of lists of all the possible collisions
             Starts at the root and goes down to each leaf node, recurring back up, passing up the 
                 collisions
         """
+
+        self.count += 1
 
         cdef int index
         nodes = self.nodes
@@ -466,8 +470,19 @@ class QuadTree(object):
             for index in range(4):
                 # Combine this node's scene_objects with the nodes from the children
                 sub_collisions = nodes[index].get_all_collisions()
+                # pprint(sub_collisions)
+                # sys.exit()
                 if sub_collisions:
-                    collisions.append(self.scene_objects[:] + sub_collisions)
+                    # If a list of lists
+                    if type(sub_collisions[0]) == list:
+                        for sub_collision in sub_collisions:
+                            collisions.append(self.scene_objects + sub_collision)
+                    else:
+                        collisions.append(self.scene_objects + sub_collisions)
+
+            # print("Collisions:")
+            # pprint(collisions)
+            # print("")
         else:
             collisions = self.scene_objects[:]
 
