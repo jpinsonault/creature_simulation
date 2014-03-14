@@ -5,6 +5,7 @@ sys.path.insert(0, '../')
 import random
 from random import randrange
 from random import uniform
+from pprint import pprint
 from pygame import draw
 from pygame.locals import *
 from collections import deque
@@ -47,7 +48,7 @@ class CreatureSim(PyGameBase):
     """Runs the creature sim game"""
 
     CAMERA_MOVE_SPEED = .5
-    CAM_WIDTH = 800
+    CAM_WIDTH = 1100
     CAM_HEIGHT = 800
     WORLD_WIDTH = 100000
     WORLD_HEIGHT = 100000
@@ -68,6 +69,8 @@ class CreatureSim(PyGameBase):
         # Will draw the quadtree overlay if true
         self.draw_quadtree = False
 
+        self.paused = False
+
     def run(self):
         self.load()
 
@@ -82,8 +85,9 @@ class CreatureSim(PyGameBase):
             self.handle_events()
             self.handle_key_presses()
 
-            self.update_creature_positions()
-            self.hand_collisions()
+            if not self.paused:
+                self.update_creature_positions()
+                self.hand_collisions()
             self.render_frame()
 
     def render_frame(self):
@@ -98,9 +102,9 @@ class CreatureSim(PyGameBase):
         pygame.display.flip()
 
     def hand_collisions(self):
-        # possible_collisions = self.quadtree.get_possible_collisions()
+        possible_collisions = self.quadtree.get_all_collisions()
 
-        # print(possible_collisions)
+        # pprint(possible_collisions)
         pass
 
     def handle_key_presses(self):
@@ -141,6 +145,9 @@ class CreatureSim(PyGameBase):
             if event.key == K_t:
                 self.draw_quadtree = not self.draw_quadtree
 
+            if event.key == K_p:
+                self.paused = not self.paused
+
         # Key Up
         ########################
         if event.type == KEYUP:
@@ -153,7 +160,7 @@ class CreatureSim(PyGameBase):
         self.creatures = []
         self.foods = []
 
-        for x in range(400):
+        for x in range(800):
             new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)

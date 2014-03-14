@@ -59,7 +59,7 @@ class Camera(GraphNode):
 
     def get_bounds(self):
         x = self.position[0] - ((self.width / 2) * self.zoom)
-        y = self.position[1] - ((self.width / 2) * self.zoom)
+        y = self.position[1] - ((self.height / 2) * self.zoom)
 
         width = self.width * self.zoom
         height = self.height * self.zoom

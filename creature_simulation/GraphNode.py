@@ -40,6 +40,9 @@ class GraphNode(object):
         # sin and cos of the heading will be cached so children don't have to recalculate
         self.cos_radians = cos(self.heading)
         self.sin_radians = sin(self.heading)
+
+    def __repr__(self):
+        return "{} at {}, {}".format(self.__class__.__name__, self.position[0], self.position[1])
         
     def reparent_to(self, new_parent):
         if self.parent:

@@ -1,5 +1,7 @@
 import pygame
 import pdb
+from pprint import pprint
+
 
 class QuadTree(object):
     def __init__(self, bounds, int depth=15, int max_objects=4, object_map = None, parent=None):
@@ -240,14 +242,13 @@ class QuadTree(object):
             return None
         
         bounds = self.bounds
-        # cdef int bx, by, bx2, by2 = bounds
         cdef float bx = bounds[0]
         cdef float by = bounds[1]
         cdef float bw = bounds[2]
         cdef float bh = bounds[3]
         cdef float bx2 = bx + bw
         cdef float by2 = by + bh
-        # cdef float tx, ty, tx2, ty2 = target_bounds
+
         cdef float tx = target_bounds[0]
         cdef float ty = target_bounds[1]
         cdef float tw = target_bounds[2]
@@ -448,3 +449,28 @@ class QuadTree(object):
                 scaled_rect = camera.scale_rect(node.bounds)
                 pygame.draw.rect(screen, (0, 255, 0), scaled_rect, 1)
 
+    def get_all_collisions(self):
+        """
+            Look through the whole tree and return a list of lists of all the possible collisions
+            Starts at the root and goes down to each leaf node, recurring back up, passing up the 
+                collisions
+        """
+
+        cdef int index
+        nodes = self.nodes
+
+        collisions = []
+
+        if nodes:
+            # Look in subnodes for scene objects
+            for index in range(4):
+                # Combine this node's scene_objects with the nodes from the children
+                sub_collisions = nodes[index].get_all_collisions()
+                if sub_collisions:
+                    collisions.append(self.scene_objects[:] + sub_collisions)
+        else:
+            collisions = self.scene_objects[:]
+
+        return collisions
+
+        
