@@ -137,3 +137,11 @@ class GraphNode(object):
 
     def get_bounds(self):
         return (self.absolute_position[0], self.absolute_position[1], 1, 1)
+
+    def collide_point(self, point):
+        x, y, w, h = self.get_bounds()
+
+        px, py = point
+
+        return px >= x and px <= x + w and py >= y and py <= y + h
+            

@@ -55,9 +55,12 @@ class CreatureSim(PyGameBase):
 
     def __init__(self):
         super(CreatureSim, self).__init__()
+
+        pygame.init()
+
         self.running = True
         # self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=-(self.CAM_WIDTH / 2), y=-(self.CAM_HEIGHT / 2))
-        self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=0, y=0, zoom=5.0)
+        self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=0, y=0, zoom=1.0)
         self.scene = Background()
         self.screen = pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
         # QuadTree for collision detection
@@ -70,6 +73,10 @@ class CreatureSim(PyGameBase):
         self.draw_quadtree = False
 
         self.paused = False
+
+        # When the user clicks on the screen it's position will be stored here 
+        self.mouse_screen_position = None
+        self.mouse_real_position = None
 
     def run(self):
         self.load()
@@ -98,6 +105,8 @@ class CreatureSim(PyGameBase):
         self.scene.draw(self.screen, self.camera)
         if self.draw_quadtree:
             self.quadtree.draw_tree(self.screen, self.camera)
+
+        self.draw_ui()
         
         pygame.display.flip()
 
@@ -157,17 +166,34 @@ class CreatureSim(PyGameBase):
             except KeyError:
                 pass
 
+        # Mouse Down
+        ########################     
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            self.handle_click()
+
+    def handle_click(self):
+        self.mouse_screen_position = pygame.mouse.get_pos()
+        self.mouse_real_position = self.camera.real_position(self.mouse_screen_position)
+
+        hit = self.quadtree.ray_cast(self.mouse_real_position)
+
+        if hit:
+            hit[0].color = GREEN
+
     def load(self):
+        self.font = pygame.font.SysFont("monospace", 25)
+        self.font.set_bold(True)
+
         self.creatures = []
         self.foods = []
 
-        for x in range(500):
+        for x in range(10):
             new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
             new_creature.calc_absolute_position()
 
-        for x in range(75):
+        for x in range(10):
             new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=RED)
             self.foods.append(new_food)
             new_food.reparent_to(self.scene)
@@ -201,3 +227,8 @@ class CreatureSim(PyGameBase):
         }
 
         self.register_keys(key_map)
+
+    def draw_ui(self):
+        if self.mouse_screen_position:
+            mouse_click_label = self.font.render("Click: {}, {}".format(*self.mouse_real_position), 1, WHITE)
+            self.screen.blit(mouse_click_label, (10, 10))

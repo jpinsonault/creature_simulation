@@ -236,6 +236,22 @@ class QuadTree(object):
         # otherwise it means target bounds overlap more then one subnode and it needs to be added to this node
         return None
 
+    def ray_cast(self, point):
+        """Given a point, return the first object found that it intersects with"""
+
+        # First pass gets the objects from the tree
+        first_pass_objects = self.get_objects_at_bounds((point[0], point[1], 0, 0))
+
+        second_pass_objects = []
+        # Second does a simple check against the bounding box of the object
+        if first_pass_objects:
+            second_pass_objects = [scene_object for scene_object in first_pass_objects if scene_object.collide_point(point)]
+
+        # Third pass compares against the object's actual shape
+
+        # pprint(second_pass_objects)
+        return second_pass_objects
+
     def get_objects_at_bounds(self, target_bounds):
 
         nodes = self.nodes

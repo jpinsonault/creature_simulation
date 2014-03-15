@@ -65,3 +65,10 @@ class Camera(GraphNode):
         height = self.height * self.zoom
 
         return (x, y, width, height)
+
+    def real_position(self, point):
+        """Converts a screen coordinate to the coordinate it hits in the game world"""
+        x = (point[0] - self.width/2) * self.zoom + self.position[0]
+        y = (point[1] - self.height/2) * self.zoom + self.position[1]
+
+        return (x, y)
