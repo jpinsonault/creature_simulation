@@ -139,6 +139,7 @@ class GraphNode(object):
         return (self.absolute_position[0], self.absolute_position[1], 1, 1)
 
     def collide_point(self, point):
+        """Returns true if point is in this objects bounding box"""
         x, y, w, h = self.get_bounds()
 
         px, py = point

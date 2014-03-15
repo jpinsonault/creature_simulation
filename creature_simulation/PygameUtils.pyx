@@ -1,7 +1,3 @@
-from math import cos
-from math import sin
-
-
 def rotate_around(float cos_radians, float sin_radians, point, pivot, float radians):
     """
         Rotates point around pivot by radians

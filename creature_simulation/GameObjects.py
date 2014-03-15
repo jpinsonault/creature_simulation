@@ -86,6 +86,31 @@ class Polygon(GraphNode):
         bounds = self.bounds
         return (bounds[0] + self.absolute_position[0], bounds[1] + self.absolute_position[1], bounds[2], bounds[3])
 
+    def collide_point(self, point):
+        """
+            Returns true if point collides with this polygon
+            Uses an algorithm lifted from 
+                http://geospatialpython.com/2011/01/point-in-polygon.html
+        """
+        x, y = point
+        poly = self.absolute_shape
+
+        n = len(poly)
+        inside = False
+
+        p1x,p1y = poly[0]
+        for i in range(n+1):
+            p2x,p2y = poly[i % n]
+            if y > min(p1y,p2y):
+                if y <= max(p1y,p2y):
+                    if x <= max(p1x,p2x):
+                        if p1y != p2y:
+                            xints = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
+                        if p1x == p2x or x <= xints:
+                            inside = not inside
+            p1x,p1y = p2x,p2y
+
+        return inside
 
 class Creature(Polygon):
     """
@@ -99,12 +124,25 @@ class Creature(Polygon):
         self.nn = NeuralNetwork(3, 7, 2)
         self.nn.initialize_random_network(.2)
 
+        # Add a vision code to the creature
+
+
 
 class Food(Polygon):
     """
-        Object representing the creature on screen
+        Object representing the food on screen
     """
     BASE_SHAPE = [[-20, -20], [20, -20], [20, 20], [-20, 20]]
 
     def __init__(self, x=0, y=0, heading=0.0, color=None):
         super(Food, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+
+
+class VisionCone(Polygon):
+    """
+        A triangle for the creatures' vision
+    """
+    BASE_SHAPE = [[-10, 0], [15, -15], [15, 15]]
+
+    def __init__(self, x=0, y=0, heading=0.0, color=None):
+        super(VisionCone, self).__init__(self.BASE_SHAPE, x, y, heading, color)
