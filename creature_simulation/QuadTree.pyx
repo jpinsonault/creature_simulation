@@ -51,7 +51,6 @@ class QuadTree(object):
             # clear the reference to the  array of object bound to this node - reference to these objects is stored in `objects` array
             self.scene_objects = []
 
-            subnode = None
 
             # iterate over all the objects and try to put them inside subnodes they fit in
             for scene_object in scene_objects:
@@ -83,6 +82,8 @@ class QuadTree(object):
         object_node.update_to_self(update_object, bounds)
 
     def update_to_self(self, update_object, target_bounds):
+        if update_object.debug:
+            print("debug")
         # If it fits in this node
         if self.fits(target_bounds):
             # If we have subnodes and it fits in a subnode
@@ -100,6 +101,20 @@ class QuadTree(object):
                 self.parent.update_to_self(update_object, target_bounds)
             else:
                 self.remove(update_object)
+
+    def fits(self, target_bounds):
+        cdef int bx = self.bounds[0]
+        cdef int by = self.bounds[1]
+        cdef int bw = self.bounds[2]
+        cdef int bh = self.bounds[3]
+
+        cdef int tx = target_bounds[0]
+        cdef int ty = target_bounds[1]
+        cdef int tw = target_bounds[2]
+        cdef int th = target_bounds[3]
+
+        # If the top left and bottom right fit, it fits
+        return tx >= bx and ty >= by and tx + tw <= bx + bw and ty + th <= by + bh
 
     def remove_objects(self, scene_objects):
         for scene_object in scene_objects:
@@ -182,20 +197,6 @@ class QuadTree(object):
             half_height
         ), depth, max_objects, self.object_map, self))
 
-    def fits(self, target_bounds):
-        cdef int bx = self.bounds[0]
-        cdef int by = self.bounds[1]
-        cdef int bw = self.bounds[2]
-        cdef int bh = self.bounds[3]
-
-        cdef int tx = target_bounds[0]
-        cdef int ty = target_bounds[1]
-        cdef int tw = target_bounds[2]
-        cdef int th = target_bounds[3]
-
-        # If the top left and bottom right fit, it fits
-        return tx >= bx and ty >= by and tx + tw <= bx + bw and ty + th <= by + bh
-
     def get_subnode_for_bounds(self, target_bounds):
         bounds = self.bounds
         # cdef int bx, by, bw, bh = bounds
@@ -245,12 +246,17 @@ class QuadTree(object):
         second_pass_objects = []
         # Second does a simple check against the bounding box of the object
         if first_pass_objects:
-            second_pass_objects = [scene_object for scene_object in first_pass_objects if scene_object.collide_point(point)]
+            second_pass_objects = [scene_object for scene_object in first_pass_objects if scene_object.collide_point_bounds(point)]
 
         # Third pass compares against the object's actual shape
+        hits = []
+        if second_pass_objects:
+            hits = [scene_object for scene_object in first_pass_objects if scene_object.collide_point_poly(point)]
 
-        # pprint(second_pass_objects)
-        return second_pass_objects
+        if hits:
+            return hits[0]
+        else:
+            return None
 
     def get_objects_at_bounds(self, target_bounds):
 

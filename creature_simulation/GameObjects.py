@@ -86,7 +86,7 @@ class Polygon(GraphNode):
         bounds = self.bounds
         return (bounds[0] + self.absolute_position[0], bounds[1] + self.absolute_position[1], bounds[2], bounds[3])
 
-    def collide_point(self, point):
+    def collide_point_poly(self, point):
         """
             Returns true if point collides with this polygon
             Uses an algorithm lifted from 
@@ -125,6 +125,7 @@ class Creature(Polygon):
         self.nn.initialize_random_network(.2)
 
         # Add a vision code to the creature
+        vision_cone = VisionCone()
 
 
 

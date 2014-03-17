@@ -178,7 +178,11 @@ class CreatureSim(PyGameBase):
         hit = self.quadtree.ray_cast(self.mouse_real_position)
 
         if hit:
-            hit[0].color = GREEN
+            hit.debug = not hit.debug
+            if hit.color == GREEN:
+                hit.color = WHITE
+            else:
+                hit.color = GREEN
 
     def load(self):
         self.font = pygame.font.SysFont("monospace", 25)
@@ -209,8 +213,8 @@ class CreatureSim(PyGameBase):
             network = creature.nn
             network.compute_network()
             outputs = network.get_outputs()
-            creature.rotate(self.dt * outputs[0] / 50.0)
-            creature.move_forward(self.dt * outputs[1])
+            creature.rotate(self.dt * outputs[0] / 1000.0)
+            creature.move_forward(self.dt * outputs[1] / 20.0)
 
         # self.scene.rotate(self.dt * .0005)
         self.quadtree.update_objects(self.creatures)

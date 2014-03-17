@@ -41,6 +41,9 @@ class GraphNode(object):
         self.cos_radians = cos(self.heading)
         self.sin_radians = sin(self.heading)
 
+        # Used for random debugging purposes
+        self.debug = False
+
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
         
@@ -138,7 +141,7 @@ class GraphNode(object):
     def get_bounds(self):
         return (self.absolute_position[0], self.absolute_position[1], 1, 1)
 
-    def collide_point(self, point):
+    def collide_point_bounds(self, point):
         """Returns true if point is in this objects bounding box"""
         x, y, w, h = self.get_bounds()
 
