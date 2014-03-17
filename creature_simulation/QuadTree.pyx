@@ -82,19 +82,30 @@ class QuadTree(object):
         object_node.update_to_self(update_object, bounds)
 
     def update_to_self(self, update_object, target_bounds):
-        if update_object.debug:
-            print("debug")
         # If it fits in this node
         if self.fits(target_bounds):
             # If we have subnodes and it fits in a subnode
             if self.nodes:
                 subnode = self.get_subnode_for_bounds(target_bounds)
                 if subnode:
+                    # Move to a new sub node
                     # Remove from self one and insert into the subnode
                     self.remove(update_object)
                     subnode.insert(update_object)
-                    # print("Moved to a new sub node")
-            # else it hasn't changed node, we're done
+                else:
+                    # We have subnodes but it doesn't fit in them.
+                    # Insert into this node
+                    if update_object not in self.scene_objects:
+                        self.remove(update_object)
+                        self.scene_objects.append(update_object)
+                        self.object_map[update_object] = self
+            else:
+                if update_object not in self.scene_objects:
+                    # Add it to this node
+                    self.remove(update_object)
+                    self.scene_objects.append(update_object)
+                    self.object_map[update_object] = self
+
         else:
             if self.parent:
                 # Moved to a parent node
