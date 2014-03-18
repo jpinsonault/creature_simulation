@@ -15,12 +15,11 @@ from GameObjects import Food
 from Camera import Camera
 from QuadTree import QuadTree
 from Toggler import Toggler
+from UserInterface import UserInterface
+from UserInterface import TextBox
+from UserInterface import MultilineTextBox
 
-BLACK = (  0,   0,   0)
-WHITE = (255, 255, 255)
-BLUE =  (  0,   0, 255)
-GREEN = (  0, 255,   0)
-RED =   (255,   0,   0)
+from Colors import *
 
 
 class PyGameBase(object):
@@ -76,6 +75,8 @@ class CreatureSim(PyGameBase):
         # QuadTree for collision detection
         self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=9)
 
+        self.ui = UserInterface(self.screen)
+
         self.dt = 0
 
         # Will draw the quadtree overlay if true
@@ -91,6 +92,8 @@ class CreatureSim(PyGameBase):
         self.game_speed = 1.0
 
         self.selected_creature = None
+
+        self.follow_creature = False
 
 
     def run(self):
@@ -140,14 +143,15 @@ class CreatureSim(PyGameBase):
             self.camera.zoom_out(self.dt)
 
         # Camera movement
-        if self.key_presses["cam-up"]:
-            self.camera.move(y_change=-self.dt * self.CAMERA_MOVE_SPEED)
-        if self.key_presses["cam-down"]:
-            self.camera.move(y_change=self.dt * self.CAMERA_MOVE_SPEED)
-        if self.key_presses["cam-left"]:
-            self.camera.move(x_change=-self.dt * self.CAMERA_MOVE_SPEED)
-        if self.key_presses["cam-right"]:
-            self.camera.move(x_change=self.dt * self.CAMERA_MOVE_SPEED)
+        if not self.follow_creature and self.selected_creature:
+            if self.key_presses["cam-up"]:
+                self.camera.move(y_change=-self.dt * self.CAMERA_MOVE_SPEED)
+            if self.key_presses["cam-down"]:
+                self.camera.move(y_change=self.dt * self.CAMERA_MOVE_SPEED)
+            if self.key_presses["cam-left"]:
+                self.camera.move(x_change=-self.dt * self.CAMERA_MOVE_SPEED)
+            if self.key_presses["cam-right"]:
+                self.camera.move(x_change=self.dt * self.CAMERA_MOVE_SPEED)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -173,6 +177,17 @@ class CreatureSim(PyGameBase):
             if event.key == K_p:
                 self.paused = not self.paused
 
+            if event.key == K_f:
+                self.follow_creature = not self.follow_creature
+
+                if self.selected_creature:
+                    if self.follow_creature:
+                        self.attach_camera_to(self.selected_creature)
+                    else:
+                        self.detach_camera_from(self.selected_creature)
+
+
+
             if event.key == K_RIGHTBRACKET:
                 self.speedup_game()
 
@@ -192,6 +207,15 @@ class CreatureSim(PyGameBase):
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_click()
 
+    def attach_camera_to(self, scene_object):
+        self.camera.set_position([0, 0])
+        self.camera.reparent_to(scene_object)
+
+    def detach_camera_from(self, scene_object):
+        if self.selected_creature:
+            self.camera.reparent_to(self.scene)
+            self.camera.set_position(scene_object.absolute_position)
+
     def handle_click(self):
         self.mouse_screen_position = pygame.mouse.get_pos()
         self.mouse_real_position = self.camera.real_position(self.mouse_screen_position)
@@ -207,11 +231,10 @@ class CreatureSim(PyGameBase):
                 self.selected_creature = hit
                 hit.selected = True
 
+                if self.follow_creature:
+                    self.attach_camera_to(hit)
 
     def load(self):
-        self.font = pygame.font.SysFont("monospace", 25)
-        self.font.set_bold(True)
-
         self.creatures = []
         self.foods = []
 
@@ -226,9 +249,17 @@ class CreatureSim(PyGameBase):
             self.foods.append(new_food)
             new_food.reparent_to(self.scene)
             new_food.calc_absolute_position()
+
+        self.camera.reparent_to(self.scene)
             
         self.quadtree.insert_objects(self.creatures)
         self.quadtree.insert_objects(self.foods)
+
+        self.speed_textbox = TextBox("", (10, self.CAM_HEIGHT - 40))
+        self.creature_stats_textbox = MultilineTextBox([""], (10, 10))
+
+        self.ui.add(self.speed_textbox)
+        self.ui.add(self.creature_stats_textbox)
 
         print("Num Creatures: {}".format(len(self.creatures)))
 
@@ -263,61 +294,21 @@ class CreatureSim(PyGameBase):
         self.register_keys(key_map)
 
     def draw_ui(self):
-        if self.mouse_screen_position:
-            mouse_click_label = self.font.render("Click: {}, {}".format(*self.mouse_real_position), 1, WHITE)
-            self.screen.blit(mouse_click_label, (10, 10))
+        ui = self.ui
 
         if self.paused:
             speed_text = "Speed: Paused"
         else:
             speed_text = "Speed: {}x".format(self.game_speed)
             
-        speed_label = self.font.render(speed_text, 1, WHITE)
-        self.screen.blit(speed_label, (10, self.CAM_HEIGHT - 40))
+        self.speed_textbox.set(speed_text)
+
+        if self.selected_creature:
+            self.creature_stats_textbox.set(self.selected_creature.get_stats())
+
+        ui.draw()
 
 
-class TextBox(object):
-    """Responsible for single line text boxes"""
-    def __init__(self, string, position, size=22, color=WHITE, bold=False, italic=False, typeface="monospace"):
-        super(TextBox, self).__init__()
-        self.string = string
-        self.position = position
-        self.size = size
-        self.bold = bold
-        self.italic = italic
 
-        self.font = pygame.font.SysFont(typeface, size)
-        self.font.set_bold(bold)
-        self.font.set_italic(italic)
-
-        self.label = None
-        make_label()
-
-    def set_string(self, new_string):
-        self.string = new_string
-        self.make_label()
-
-    def make_label(self):
-        self.label = self.font.render(self.text, 1, self.color)
-        
-    def draw(self, screen):
-        self.screen.blit(self.lable, self.position)
-
-class UserInterface(object):
-    """Handles drawing text on the screen each frame"""
-    def __init__(self):
-        super(UserInterface, self).__init__(screen)
-        self.screen = screen
-
-        self.elements = []
-
-    def draw(self):
-        """Draws all the UI objects on the screen"""
-
-        for element in elements:
-            element.draw(self.screen)
-
-    def add(self, new_element):
-        self.elements.append(new_element)
 
         

@@ -140,6 +140,18 @@ class Creature(Polygon):
         # Add a vision code to the creature
         vision_cone = VisionCone()
 
+    def get_stats(self):
+        """
+            Returns a list of strings with relevent info about this creature
+            Used to display info on screen
+        """
+        stats = ["Creature Stats"]
+        stats.append("Position: {:.0f}, {:.0f}".format(*self.absolute_position))
+        stats.append("Health: {}".format(self.color))
+        stats.append("More stuff")
+
+        return stats
+
 
 
 class Food(Polygon):
