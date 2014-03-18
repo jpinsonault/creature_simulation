@@ -14,12 +14,14 @@ from GameObjects import Creature
 from GameObjects import Food
 from Camera import Camera
 from QuadTree import QuadTree
+from Toggler import Toggler
 
 BLACK = (  0,   0,   0)
 WHITE = (255, 255, 255)
 BLUE =  (  0,   0, 255)
 GREEN = (  0, 255,   0)
 RED =   (255,   0,   0)
+
 
 class PyGameBase(object):
     """docstring for PyGameBase"""
@@ -34,6 +36,9 @@ class PyGameBase(object):
 
     def __init__(self):
         super(PyGameBase, self).__init__()
+        self.clock = pygame.time.Clock()
+
+        pygame.init()
 
     def set_key(self, key, value):
         self.key_map[key] = value
@@ -53,10 +58,15 @@ class CreatureSim(PyGameBase):
     WORLD_WIDTH = 100000
     WORLD_HEIGHT = 100000
 
+    GAME_SPEED_INCREMENT = .1
+    MAX_GAME_SPEED = 2
+    MIN_GAME_SPEED = .1
+
+    SELECTED_COLOR = GREEN
+
     def __init__(self):
         super(CreatureSim, self).__init__()
 
-        pygame.init()
 
         self.running = True
         # self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=-(self.CAM_WIDTH / 2), y=-(self.CAM_HEIGHT / 2))
@@ -66,7 +76,6 @@ class CreatureSim(PyGameBase):
         # QuadTree for collision detection
         self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=9)
 
-        self.clock = pygame.time.Clock()
         self.dt = 0
 
         # Will draw the quadtree overlay if true
@@ -77,6 +86,12 @@ class CreatureSim(PyGameBase):
         # When the user clicks on the screen it's position will be stored here 
         self.mouse_screen_position = None
         self.mouse_real_position = None
+
+        # How fast everything moves
+        self.game_speed = 1.0
+
+        self.selected_creature = None
+
 
     def run(self):
         self.load()
@@ -158,6 +173,12 @@ class CreatureSim(PyGameBase):
             if event.key == K_p:
                 self.paused = not self.paused
 
+            if event.key == K_RIGHTBRACKET:
+                self.speedup_game()
+
+            if event.key == K_LEFTBRACKET:
+                self.slowdown_game()
+
         # Key Up
         ########################
         if event.type == KEYUP:
@@ -178,11 +199,14 @@ class CreatureSim(PyGameBase):
         hit = self.quadtree.ray_cast(self.mouse_real_position)
 
         if hit:
-            hit.debug = not hit.debug
-            if hit.color == GREEN:
-                hit.color = WHITE
-            else:
-                hit.color = GREEN
+            # If our hit is a Creature
+            if issubclass(type(hit), Creature):
+                hit.debug = not hit.debug
+                if self.selected_creature:
+                    self.selected_creature.selected = False
+                self.selected_creature = hit
+                hit.selected = True
+
 
     def load(self):
         self.font = pygame.font.SysFont("monospace", 25)
@@ -213,11 +237,17 @@ class CreatureSim(PyGameBase):
             network = creature.nn
             network.compute_network()
             outputs = network.get_outputs()
-            creature.rotate(self.dt * outputs[0] / 1000.0)
-            creature.move_forward(self.dt * outputs[1] / 20.0)
+            creature.rotate(self.dt * outputs[0] / 100.0 / (1.0 / self.game_speed))
+            creature.move_forward(self.dt * outputs[1] / 2.0 / (1.0 / self.game_speed))
 
         # self.scene.rotate(self.dt * .0005)
         self.quadtree.update_objects(self.creatures)
+
+    def speedup_game(self):
+        self.game_speed = min(self.MAX_GAME_SPEED, self.game_speed + self.GAME_SPEED_INCREMENT)
+
+    def slowdown_game(self):
+        self.game_speed = max(self.MIN_GAME_SPEED, self.game_speed - self.GAME_SPEED_INCREMENT)
 
     def setup_keys(self):
         """Sets up key presses"""
@@ -236,3 +266,12 @@ class CreatureSim(PyGameBase):
         if self.mouse_screen_position:
             mouse_click_label = self.font.render("Click: {}, {}".format(*self.mouse_real_position), 1, WHITE)
             self.screen.blit(mouse_click_label, (10, 10))
+
+        if self.paused:
+            speed_text = "Speed: Paused"
+        else:
+            speed_text = "Speed: {}x".format(self.game_speed)
+            
+        speed_label = self.font.render(speed_text, 1, WHITE)
+        self.screen.blit(speed_label, (10, self.CAM_HEIGHT - 40))
+

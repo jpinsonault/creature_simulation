@@ -17,6 +17,13 @@ from PygameUtils import rotate_shape
 from NeuralNetworks.NeuralNetwork import NeuralNetwork
 
 
+BLACK = (  0,   0,   0)
+WHITE = (255, 255, 255)
+BLUE =  (  0,   0, 255)
+GREEN = (  0, 255,   0)
+RED =   (255,   0,   0)
+
+
 class Background(GraphNode):
     """Probably be used for displaying a background image tile at some point"""
     def __init__(self, x=0, y=0, heading=0.0):
@@ -39,12 +46,18 @@ class Polygon(GraphNode):
 
         self.bounds = self.get_bounding_square()
 
+
     def draw_self(self, screen, camera):
         if camera.on_screen(self.absolute_position):
             self.calc_shape_rotation()
             self.onscreen_shape_coords = [camera.scale(point) for point in self.absolute_shape]
         
-            draw.polygon(screen, self.color, self.onscreen_shape_coords)
+            if self.selected:
+                draw_color = GREEN
+            else:
+                draw_color = self.color
+
+            draw.polygon(screen, draw_color, self.onscreen_shape_coords)
 
     def find_center(self):
         """Find the geometric center of the polygon"""

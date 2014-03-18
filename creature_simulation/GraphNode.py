@@ -43,6 +43,9 @@ class GraphNode(object):
 
         # Used for random debugging purposes
         self.debug = False
+        
+        # Used for anything that's important if this object has been selected
+        self.selected = False
 
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
