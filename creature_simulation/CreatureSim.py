@@ -275,3 +275,49 @@ class CreatureSim(PyGameBase):
         speed_label = self.font.render(speed_text, 1, WHITE)
         self.screen.blit(speed_label, (10, self.CAM_HEIGHT - 40))
 
+
+class TextBox(object):
+    """Responsible for single line text boxes"""
+    def __init__(self, string, position, size=22, color=WHITE, bold=False, italic=False, typeface="monospace"):
+        super(TextBox, self).__init__()
+        self.string = string
+        self.position = position
+        self.size = size
+        self.bold = bold
+        self.italic = italic
+
+        self.font = pygame.font.SysFont(typeface, size)
+        self.font.set_bold(bold)
+        self.font.set_italic(italic)
+
+        self.label = None
+        make_label()
+
+    def set_string(self, new_string):
+        self.string = new_string
+        self.make_label()
+
+    def make_label(self):
+        self.label = self.font.render(self.text, 1, self.color)
+        
+    def draw(self, screen):
+        self.screen.blit(self.lable, self.position)
+
+class UserInterface(object):
+    """Handles drawing text on the screen each frame"""
+    def __init__(self):
+        super(UserInterface, self).__init__(screen)
+        self.screen = screen
+
+        self.elements = []
+
+    def draw(self):
+        """Draws all the UI objects on the screen"""
+
+        for element in elements:
+            element.draw(self.screen)
+
+    def add(self, new_element):
+        self.elements.append(new_element)
+
+        
