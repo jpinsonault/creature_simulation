@@ -109,6 +109,9 @@ class GraphNode(object):
         self.position = position
         self.position_changed = True
 
+    def get_absolute_position(self):
+        return self.absolute_position[:]
+
     def set_heading(self, heading):
         self.heading = heading
         self.position_changed = True

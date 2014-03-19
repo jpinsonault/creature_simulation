@@ -145,9 +145,10 @@ class Creature(Polygon):
             Used to display info on screen
         """
         stats = ["Creature Stats"]
-        stats.append("Position: {:.0f}, {:.0f}".format(*self.absolute_position))
+        stats.append("Abs Position: {:.0f}, {:.0f}".format(*self.absolute_position))
+        stats.append("Position: {:.0f}, {:.0f}".format(*self.position))
         stats.append("Health: {}".format(self.color))
-        stats.append("More stuff")
+        stats.append("Parent: {}".format(self.parent))
 
         return stats
 

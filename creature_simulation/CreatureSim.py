@@ -110,9 +110,8 @@ class CreatureSim(PyGameBase):
             self.handle_events()
             self.handle_key_presses()
 
-            if not self.paused:
-                self.update_creature_positions()
-                self.handle_collisions()
+            self.update_creature_positions()
+            self.handle_collisions()
             self.render_frame()
 
     def render_frame(self):
@@ -120,6 +119,7 @@ class CreatureSim(PyGameBase):
 
         self.screen.fill(BLACK)
 
+        # Find all objects in nodes intersecting the screen
         objects_to_draw = self.quadtree.get_objects_at_bounds(self.camera.get_bounds())
 
         for scene_object in objects_to_draw:
@@ -190,8 +190,6 @@ class CreatureSim(PyGameBase):
                     else:
                         self.detach_camera_from(self.selected_creature)
 
-
-
             if event.key == K_RIGHTBRACKET:
                 self.speedup_game()
 
@@ -216,9 +214,8 @@ class CreatureSim(PyGameBase):
         self.camera.reparent_to(scene_object)
 
     def detach_camera_from(self, scene_object):
-        if self.selected_creature:
-            self.camera.reparent_to(self.scene)
-            self.camera.set_position(scene_object.absolute_position)
+        self.camera.reparent_to(self.scene)
+        self.camera.set_position(scene_object.get_absolute_position())
 
     def handle_click(self):
         self.mouse_screen_position = pygame.mouse.get_pos()
@@ -270,12 +267,13 @@ class CreatureSim(PyGameBase):
         print("Num Creatures: {}".format(len(self.creatures)))
 
     def update_creature_positions(self):
-        for creature in self.creatures:
-            network = creature.nn
-            network.compute_network()
-            outputs = network.get_outputs()
-            creature.rotate(self.dt * outputs[0] / 100.0 / (1.0 / self.game_speed))
-            creature.move_forward(self.dt * outputs[1] / 2.0 / (1.0 / self.game_speed))
+        if not self.paused:
+            for creature in self.creatures:
+                network = creature.nn
+                network.compute_network()
+                outputs = network.get_outputs()
+                creature.rotate(self.dt * outputs[0] / 100.0 / (1.0 / self.game_speed))
+                creature.move_forward(self.dt * outputs[1] / 2.0 / (1.0 / self.game_speed))
 
         # self.scene.rotate(self.dt * .0005)
 
