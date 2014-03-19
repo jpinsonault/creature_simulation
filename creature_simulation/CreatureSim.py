@@ -182,13 +182,7 @@ class CreatureSim(PyGameBase):
                 self.paused = not self.paused
 
             if event.key == K_f:
-                self.follow_creature = not self.follow_creature
-
-                if self.selected_creature:
-                    if self.follow_creature:
-                        self.attach_camera_to(self.selected_creature)
-                    else:
-                        self.detach_camera_from(self.selected_creature)
+                self.toggle_follow_creature()
 
             if event.key == K_RIGHTBRACKET:
                 self.speedup_game()
@@ -208,6 +202,15 @@ class CreatureSim(PyGameBase):
         ########################     
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_click()
+
+    def toggle_follow_creature(self):
+        self.follow_creature = not self.follow_creature
+
+        if self.selected_creature:
+            if self.follow_creature:
+                self.attach_camera_to(self.selected_creature)
+            else:
+                self.detach_camera_from(self.selected_creature)
 
     def attach_camera_to(self, scene_object):
         self.camera.set_position([0, 0])
@@ -238,15 +241,18 @@ class CreatureSim(PyGameBase):
                     self.attach_camera_to(hit)
 
     def load(self):
+        """Sets up various game world objects"""
         self.creatures = []
         self.foods = []
 
+        # Create creatures
         for x in range(400):
             new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
             new_creature.calc_absolute_position()
 
+        # Create foods
         for x in range(100):
             new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=DARKGREEN)
             self.foods.append(new_food)
@@ -258,11 +264,15 @@ class CreatureSim(PyGameBase):
         self.quadtree.insert_objects(self.creatures)
         self.quadtree.insert_objects(self.foods)
 
+        # Setup text boxes
         self.speed_textbox = TextBox("", (10, self.CAM_HEIGHT - 40))
         self.creature_stats_textbox = MultilineTextBox([""], (10, 10))
+        num_creatures_text = "{} Creatures, {} Food".format(len(self.creatures), len(self.foods))
+        self.num_creatures_textbox = TextBox(num_creatures_text, (10, self.CAM_HEIGHT - 70))
 
         self.ui.add(self.speed_textbox)
         self.ui.add(self.creature_stats_textbox)
+        self.ui.add(self.num_creatures_textbox)
 
         print("Num Creatures: {}".format(len(self.creatures)))
 
