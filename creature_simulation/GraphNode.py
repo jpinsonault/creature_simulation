@@ -31,9 +31,8 @@ class GraphNode(object):
         self.children = []
 
         # Hold values for the absolute position
-        self.absolute_position = [0.0, 0.0, 0.0]
-        self.unrotated_position = [0.0, 0.0, 0.0]
-        self.offset_center = [0.0, 0.0]
+        self.absolute_position = [0.0, 0.0]
+        self.unrotated_position = [0.0, 0.0]
         # Position changed is true if this or parents have moved since last frame
         self.position_changed = True
 
@@ -118,6 +117,8 @@ class GraphNode(object):
     def calc_absolute_position(self):
         """Offsets and rotates our position and stores it in self.absolute_position"""
         # Inlining it like this is ugly but faster
+        if self.selected:
+            print(self.vision_cone.position)
         self.unrotated_position[0] = self.position[0]
         self.unrotated_position[1] = self.position[1]
 

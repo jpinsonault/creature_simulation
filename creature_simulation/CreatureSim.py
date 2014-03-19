@@ -143,7 +143,7 @@ class CreatureSim(PyGameBase):
             self.camera.zoom_out(self.dt)
 
         # Camera movement
-        if not self.follow_creature and self.selected_creature:
+        if not self.follow_creature:
             if self.key_presses["cam-up"]:
                 self.camera.move(y_change=-self.dt * self.CAMERA_MOVE_SPEED)
             if self.key_presses["cam-down"]:
@@ -228,8 +228,10 @@ class CreatureSim(PyGameBase):
                 hit.debug = not hit.debug
                 if self.selected_creature:
                     self.selected_creature.selected = False
+                    self.selected_creature.vision_cone.visible = False
                 self.selected_creature = hit
                 hit.selected = True
+                hit.vision_cone.visible = True
 
                 if self.follow_creature:
                     self.attach_camera_to(hit)

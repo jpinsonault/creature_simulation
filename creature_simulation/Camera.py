@@ -30,7 +30,6 @@ class Camera(GraphNode):
         self.zoom = min(self.zoom, self.MAX_ZOOM)
 
     def move(self, x_change=0, y_change=0):
-
         self.position[0] += x_change * (self.zoom)
         self.position[1] += y_change * (self.zoom)
         self.position_changed = True

@@ -31,7 +31,7 @@ class TextBox(object):
 
 
 class MultilineTextBox(TextBox):
-    """docstring for MultiLineTextBox"""
+    """Takes a list of strings and draws them with spacing between each line"""
     def __init__(self, text, position, size=22, color=WHITE, bold=False, italic=False, typeface="monospace"):
         self.labels = None
         super(MultilineTextBox, self).__init__(text, position, size, color, bold, italic, typeface)

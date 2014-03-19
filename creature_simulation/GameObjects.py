@@ -15,13 +15,7 @@ from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
 
 from NeuralNetworks.NeuralNetwork import NeuralNetwork
-
-
-BLACK = (  0,   0,   0)
-WHITE = (255, 255, 255)
-BLUE =  (  0,   0, 255)
-GREEN = (  0, 255,   0)
-RED =   (255,   0,   0)
+from Colors import *
 
 
 class Background(GraphNode):
@@ -35,10 +29,11 @@ class Background(GraphNode):
 
 class Polygon(GraphNode):
     """docstring for Polygon"""
-    def __init__(self, shape, x=0, y=0, heading=0.0, color=(255, 255, 255)):
+    def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
         self.shape = shape
         super(Polygon, self).__init__(x, y, heading)
         self.color = color
+        self.draw_width = draw_width
         # For caching shape coords
         self.absolute_shape = [[0.0, 0.0] for x in xrange(len(self.shape))]
         self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
@@ -57,7 +52,7 @@ class Polygon(GraphNode):
             else:
                 draw_color = self.color
 
-            draw.polygon(screen, draw_color, self.onscreen_shape_coords)
+            draw.polygon(screen, draw_color, self.onscreen_shape_coords, self.draw_width)
 
     def find_center(self):
         """Find the geometric center of the polygon"""
@@ -131,14 +126,18 @@ class Creature(Polygon):
     """
     BASE_SHAPE = [[-5, 5], [-10, 0], [-5, -5], [5, -5], [10, 0], [5, 5]]
 
-    def __init__(self, x=0, y=0, heading=0.0, color=None):
+    def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
         self.nn = NeuralNetwork(3, 7, 2)
         self.nn.initialize_random_network(.2)
 
         # Add a vision code to the creature
-        vision_cone = VisionCone()
+        self.vision_cone = VisionCone(x=100, color=BLUE)
+        self.vision_cone.visible = False
+        self.vision_cone.reparent_to(self)
+        self.vision_cone.calc_absolute_position()
+
 
     def get_stats(self):
         """
@@ -153,14 +152,13 @@ class Creature(Polygon):
         return stats
 
 
-
 class Food(Polygon):
     """
         Object representing the food on screen
     """
     BASE_SHAPE = [[-20, -20], [20, -20], [20, 20], [-20, 20]]
 
-    def __init__(self, x=0, y=0, heading=0.0, color=None):
+    def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         super(Food, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
 
@@ -168,7 +166,10 @@ class VisionCone(Polygon):
     """
         A triangle for the creatures' vision
     """
-    BASE_SHAPE = [[-10, 0], [15, -15], [15, 15]]
+    BASE_SHAPE = [[-10, 0], [30, -15], [30, 15]]
 
-    def __init__(self, x=0, y=0, heading=0.0, color=None):
-        super(VisionCone, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+    def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
+        factor = 10
+        scaled_shape = [[xpos*factor, ypos*factor] for xpos, ypos in self.BASE_SHAPE]
+        super(VisionCone, self).__init__(scaled_shape, x, y, heading, color, 1)
+
