@@ -65,21 +65,20 @@ class GraphNode(object):
             raise Exception("Child must subclass GraphNode")
         self.children.remove(child)
 
-    def draw(self, screen, window):
+    def update_position(self):
+        """Updates the absolute_positions of this object and it's children"""
         if self.has_moved():
             self.calc_absolute_position()
-        if self.visible:
-            self.draw_self(screen, window)
-        self.draw_children(screen, window)
+        self.update_children()
         self.position_changed = False
 
-    def draw_self(self, screen, window):
+    def draw(self, screen, camera):
         """Abtract method"""
         pass
 
-    def draw_children(self, screen, window):
+    def update_children(self):
         for child in self.children:
-            child.draw(screen, window)
+            child.update_position()
 
     def move_forward(self, x_change=0, y_change=0):
         self.position[0] += x_change
@@ -117,8 +116,6 @@ class GraphNode(object):
     def calc_absolute_position(self):
         """Offsets and rotates our position and stores it in self.absolute_position"""
         # Inlining it like this is ugly but faster
-        if self.selected:
-            print(self.vision_cone.position)
         self.unrotated_position[0] = self.position[0]
         self.unrotated_position[1] = self.position[1]
 

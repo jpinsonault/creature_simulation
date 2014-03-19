@@ -23,7 +23,7 @@ class Background(GraphNode):
     def __init__(self, x=0, y=0, heading=0.0):
         super(Background, self).__init__(x, y, heading)
 
-    def draw_self(self, screen, camera):
+    def draw(self, screen, camera):
         pass
 
 
@@ -42,17 +42,17 @@ class Polygon(GraphNode):
         self.bounds = self.get_bounding_square()
 
 
-    def draw_self(self, screen, camera):
-        if camera.on_screen(self.absolute_position):
-            self.calc_shape_rotation()
-            self.onscreen_shape_coords = [camera.scale(point) for point in self.absolute_shape]
+    def draw(self, screen, camera):
         
-            if self.selected:
-                draw_color = GREEN
-            else:
-                draw_color = self.color
+        self.calc_shape_rotation()
+        self.onscreen_shape_coords = [camera.scale(point) for point in self.absolute_shape]
+    
+        if self.selected:
+            draw_color = GREEN
+        else:
+            draw_color = self.color
 
-            draw.polygon(screen, draw_color, self.onscreen_shape_coords, self.draw_width)
+        draw.polygon(screen, draw_color, self.onscreen_shape_coords, self.draw_width)
 
     def find_center(self):
         """Find the geometric center of the polygon"""
@@ -106,17 +106,17 @@ class Polygon(GraphNode):
         n = len(poly)
         inside = False
 
-        p1x,p1y = poly[0]
-        for i in range(n+1):
-            p2x,p2y = poly[i % n]
-            if y > min(p1y,p2y):
-                if y <= max(p1y,p2y):
-                    if x <= max(p1x,p2x):
+        p1x, p1y = poly[0]
+        for i in range(n + 1):
+            p2x, p2y = poly[i % n]
+            if y > min(p1y, p2y):
+                if y <= max(p1y, p2y):
+                    if x <= max(p1x, p2x):
                         if p1y != p2y:
-                            xints = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
+                            xints = (y - p1y)*(p2x - p1x)/(p2y - p1y) + p1x
                         if p1x == p2x or x <= xints:
                             inside = not inside
-            p1x,p1y = p2x,p2y
+            p1x, p1y = p2x, p2y
 
         return inside
 
@@ -133,7 +133,7 @@ class Creature(Polygon):
         self.nn.initialize_random_network(.2)
 
         # Add a vision code to the creature
-        self.vision_cone = VisionCone(x=100, color=BLUE)
+        self.vision_cone = VisionCone(x=100, color=RED)
         self.vision_cone.visible = False
         self.vision_cone.reparent_to(self)
         self.vision_cone.calc_absolute_position()
@@ -150,6 +150,11 @@ class Creature(Polygon):
         stats.append("More stuff")
 
         return stats
+
+    def draw(self, screen, camera):
+        super(Creature, self).draw(screen, camera)
+        if self.selected:
+            self.vision_cone.draw(screen, camera)
 
 
 class Food(Polygon):

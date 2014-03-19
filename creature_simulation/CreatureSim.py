@@ -112,7 +112,7 @@ class CreatureSim(PyGameBase):
 
             if not self.paused:
                 self.update_creature_positions()
-                self.hand_collisions()
+                self.handle_collisions()
             self.render_frame()
 
     def render_frame(self):
@@ -120,7 +120,11 @@ class CreatureSim(PyGameBase):
 
         self.screen.fill(BLACK)
 
-        self.scene.draw(self.screen, self.camera)
+        objects_to_draw = self.quadtree.get_objects_at_bounds(self.camera.get_bounds())
+
+        for scene_object in objects_to_draw:
+            scene_object.draw(self.screen, self.camera)
+
         if self.draw_quadtree:
             self.quadtree.draw_tree(self.screen, self.camera)
 
@@ -128,8 +132,8 @@ class CreatureSim(PyGameBase):
         
         pygame.display.flip()
 
-    def hand_collisions(self):
-        possible_collisions = self.quadtree.get_all_collisions()
+    def handle_collisions(self):
+        # possible_collisions = self.quadtree.get_all_collisions()
 
         # print("Objects:")
         # pprint(possible_collisions)
@@ -247,7 +251,7 @@ class CreatureSim(PyGameBase):
             new_creature.calc_absolute_position()
 
         for x in range(100):
-            new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=RED)
+            new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=DARKGREEN)
             self.foods.append(new_food)
             new_food.reparent_to(self.scene)
             new_food.calc_absolute_position()
@@ -274,6 +278,9 @@ class CreatureSim(PyGameBase):
             creature.move_forward(self.dt * outputs[1] / 2.0 / (1.0 / self.game_speed))
 
         # self.scene.rotate(self.dt * .0005)
+
+        self.scene.update_position()
+
         self.quadtree.update_objects(self.creatures)
 
     def speedup_game(self):
