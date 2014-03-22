@@ -62,22 +62,17 @@ class Polygon(GraphNode):
         return [x_mean, y_mean]
 
     def get_bounding_circle(self):
-        greates_distance = 0
+        greatest_distance = 0
         for point in self.shape:
             distance = (point[0] * point[0]) + (point[1] * point[1])
-            greates_distance = max(distance, greates_distance)
+            greatest_distance = max(distance, greatest_distance)
 
         # Return the radius of the bounding circle
-        return sqrt(greates_distance)
+        return sqrt(greatest_distance)
 
     def get_bounding_square(self):
-        min_length = 0
-
-        for point in self.shape:
-            min_length = min(point[0], point[1], min_length)
-
-        # Returns the top left corner and the length of the square's sides
-        return (min_length, min_length, abs(min_length) * 2, abs(min_length) * 2)
+        max_radius = self.get_bounding_circle()
+        return (-max_radius, -max_radius, max_radius * 2, max_radius * 2)
 
     def calc_shape_rotation(self):
         # Offset the shape coords by our absolute_position
@@ -133,7 +128,8 @@ class Creature(Polygon):
         self.nn.initialize_random_network(.2)
 
         # Add a vision code to the creature
-        self.vision_cone = VisionCone(x=100, color=RED)
+        # Offset in the x direction, otherwise it would be centered over the creature
+        self.vision_cone = VisionCone(x=260, color=RED)
         self.vision_cone.visible = False
         self.vision_cone.reparent_to(self)
         self.vision_cone.calc_absolute_position()
@@ -177,5 +173,11 @@ class VisionCone(Polygon):
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         factor = 10
         scaled_shape = [[xpos*factor, ypos*factor] for xpos, ypos in self.BASE_SHAPE]
-        super(VisionCone, self).__init__(scaled_shape, x, y, heading, color, 1)
+
+        x_mean = sum(point[0] for point in scaled_shape) / len(scaled_shape)
+        y_mean = sum(point[1] for point in scaled_shape) / len(scaled_shape)
+
+        scaled_centered_shape = [[xpos - x_mean, ypos - y_mean] for xpos, ypos, in scaled_shape]
+
+        super(VisionCone, self).__init__(scaled_centered_shape, x, y, heading, color, 1)
 

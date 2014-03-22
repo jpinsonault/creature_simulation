@@ -274,7 +274,6 @@ class CreatureSim(PyGameBase):
         self.ui.add(self.creature_stats_textbox)
         self.ui.add(self.num_creatures_textbox)
 
-        print("Num Creatures: {}".format(len(self.creatures)))
 
     def update_creature_positions(self):
         if not self.paused:
@@ -324,8 +323,3 @@ class CreatureSim(PyGameBase):
             self.creature_stats_textbox.set(self.selected_creature.get_stats())
 
         ui.draw()
-
-
-
-
-        
