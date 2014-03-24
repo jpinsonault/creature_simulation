@@ -129,6 +129,8 @@ class CreatureSim(PyGameBase):
             self.quadtree.draw_tree(self.screen, self.camera)
 
         self.draw_ui()
+
+        self.scene.end_frame()
         
         pygame.display.flip()
 

@@ -48,6 +48,13 @@ class GraphNode(object):
 
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
+
+    def start_frame(self):
+        pass
+
+    def end_frame(self):
+        for child in self.children:
+            child.end_frame()
         
     def reparent_to(self, new_parent):
         if self.parent:

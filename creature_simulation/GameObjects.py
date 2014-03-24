@@ -79,18 +79,18 @@ class Polygon(GraphNode):
         return (-max_radius, -max_radius, max_radius * 2, max_radius * 2)
 
     def calc_shape_rotation(self):
-        # if not self.shape_calculated:
-        # Offset the shape coords by our absolute_position
-        offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]] for point in self.shape]
+        if not self.shape_calculated:
+            # Offset the shape coords by our absolute_position
+            offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]] for point in self.shape]
 
-        # Rotate the shape around parent's center
-        parent = self.parent
-        if parent:
-            self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
+            # Rotate the shape around parent's center
+            parent = self.parent
+            if parent:
+                self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
 
-        self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
+            self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
 
-        self.shape_calculated = True
+            self.shape_calculated = True
 
     def get_bounds(self):
         bounds = self.bounds
@@ -122,7 +122,7 @@ class Polygon(GraphNode):
 
         return inside
 
-    def colllide_poly(self, other):
+    def collide_poly(self, other):
         # Make sure the shapes have been rotated
         self.calc_shape_rotation()
         other.calc_shape_rotation()
@@ -145,6 +145,8 @@ class Polygon(GraphNode):
 
         return (min_interval, max_interval)
 
+    def end_frame(self):
+        self.shape_calculated = False
 
 
 class Creature(Polygon):
