@@ -35,3 +35,8 @@ def rotate_shape(float cos_radians, float sin_radians, shape, pivot, float radia
         rotated_shape.append([cos_radians* s0_minus_p0 - sin_radians* s1_minus_p1 + p0, sin_radians* s0_minus_p0 + cos_radians* s1_minus_p1 + p1])
 
     return rotated_shape
+
+def dot_2d(first, second):
+    """Returns the dot product of two vectors"""
+
+    return first[0] * second[0] + first[1] * second[1]

@@ -13,6 +13,7 @@ from math import sqrt
 from pprint import pprint
 from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
+from PygameUtils import dot_2d
 
 from NeuralNetworks.NeuralNetwork import NeuralNetwork
 from Colors import *
@@ -38,6 +39,9 @@ class Polygon(GraphNode):
         self.absolute_shape = [[0.0, 0.0] for x in xrange(len(self.shape))]
         self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
         self.absolute_position = [0, 0]
+
+        # Whether or not the calculation needs to be done
+        self.shape_calculated = False
 
         self.bounds = self.get_bounding_square()
 
@@ -75,6 +79,7 @@ class Polygon(GraphNode):
         return (-max_radius, -max_radius, max_radius * 2, max_radius * 2)
 
     def calc_shape_rotation(self):
+        # if not self.shape_calculated:
         # Offset the shape coords by our absolute_position
         offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]] for point in self.shape]
 
@@ -84,6 +89,8 @@ class Polygon(GraphNode):
             self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
 
         self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
+
+        self.shape_calculated = True
 
     def get_bounds(self):
         bounds = self.bounds
@@ -114,6 +121,31 @@ class Polygon(GraphNode):
             p1x, p1y = p2x, p2y
 
         return inside
+
+    def colllide_poly(self, other):
+        # Make sure the shapes have been rotated
+        self.calc_shape_rotation()
+        other.calc_shape_rotation()
+
+        self_edges = self.absolute_shape
+        other_edges = other.absolute_shape
+
+    def project(self, axis):
+        """Projects this polygon onto axis (a vector). Returns min/max interval"""
+        points = self.absolute_shape
+        dot_product = dot_2d(axis, points[0])
+
+        min_interval, max_interval = dot_product
+
+        for point in points:
+            dot_product = dot_2d(point, axis)
+
+            min_interval = min(min_interval, dot_product)
+            max_interval = max(max_interval, dot_product)
+
+        return (min_interval, max_interval)
+
+
 
 class Creature(Polygon):
     """
