@@ -50,22 +50,21 @@ class PyGameBase(object):
 
 class CreatureSim(PyGameBase):
     """Runs the creature sim game"""
-
     CAMERA_MOVE_SPEED = .5
-    CAM_WIDTH = 1100
-    CAM_HEIGHT = 800
-    WORLD_WIDTH = 100000
-    WORLD_HEIGHT = 100000
 
     GAME_SPEED_INCREMENT = .1
     MAX_GAME_SPEED = 2
     MIN_GAME_SPEED = .1
+    WORLD_WIDTH = 100000
+    WORLD_HEIGHT = 100000
 
     SELECTED_COLOR = GREEN
 
     def __init__(self):
         super(CreatureSim, self).__init__()
-
+        self.infoObject = pygame.display.Info()
+        self.CAM_HEIGHT = self.infoObject.current_h - 80
+        self.CAM_WIDTH = self.infoObject.current_w
 
         self.running = True
         # self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=-(self.CAM_WIDTH / 2), y=-(self.CAM_HEIGHT / 2))
@@ -94,7 +93,6 @@ class CreatureSim(PyGameBase):
         self.selected_creature = None
 
         self.follow_creature = False
-
 
     def run(self):
         self.load()
