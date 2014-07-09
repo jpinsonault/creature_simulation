@@ -10,13 +10,31 @@ from operator import add
 from math import cos
 from math import sin
 from math import sqrt
+from itertools import chain
 from pprint import pprint
 from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
 from PygameUtils import dot_2d
 
+
 from NeuralNetworks.NeuralNetwork import NeuralNetwork
 from Colors import *
+
+# utility functions
+_clamp = lambda a, v, b: max(a, min(b, v))              # clamp v between a and b
+_perp = lambda (x, y): [-y, x]                          # perpendicular
+_prod = lambda X: reduce(mul, X)                        # product
+_mag = lambda (x, y): sqrt(x * x + y * y)               # magnitude, or length
+_normalize = lambda V: [i / _mag(V) for i in V]       # normalize a vector
+# def _normalize(point):
+#     magnitude = _mag(point)
+#     if magnitude == 0.0:
+#         return point
+#     else:
+#         return [i / magnitude for i in point] 
+
+_intersect = lambda A, B: (A[1] > B[0] and B[1] > A[0]) # intersection test
+_unzip = lambda zipped: zip(*zipped)                    # unzip a list of tuples
 
 
 class Background(GraphNode):
@@ -35,9 +53,11 @@ class Polygon(GraphNode):
         super(Polygon, self).__init__(x, y, heading)
         self.color = color
         self.draw_width = draw_width
+
+        self.num_points = len(self.shape)
         # For caching shape coords
-        self.absolute_shape = [[0.0, 0.0] for x in xrange(len(self.shape))]
-        self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(len(self.shape))]
+        self.absolute_shape = [[0.0, 0.0] for x in xrange(self.num_points)]
+        self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(self.num_points)]
         self.absolute_position = [0, 0]
 
         # Whether or not the calculation needs to be done
@@ -87,7 +107,7 @@ class Polygon(GraphNode):
             parent = self.parent
             if parent:
                 self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
-
+            print("Rotation: {}".format(rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)))
             self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
 
             self.shape_calculated = True
@@ -122,31 +142,55 @@ class Polygon(GraphNode):
 
         return inside
 
-    def collide_poly(self, other):
-        # Make sure the shapes have been rotated
-        self.calc_shape_rotation()
-        other.calc_shape_rotation()
+    def _make_edges(self):
+        points = self.absolute_shape
 
-        self_edges = self.absolute_shape
-        other_edges = other.absolute_shape
+        for i, point in enumerate(points):
+            next_point = points[(i + 1) % self.num_points] # x, y of next point in series
+            # yield [point, next_point]
+            yield [point[0] - next_point[0], point[1] - next_point[1]]
 
     def project(self, axis):
-        """Projects this polygon onto axis (a vector). Returns min/max interval"""
+        """project self onto axis"""
         points = self.absolute_shape
-        dot_product = dot_2d(axis, points[0])
+        projected_points = [dot_2d(point, axis) for point in points]
+        # return the span of the projection
+        return min(projected_points), max(projected_points)
 
-        min_interval, max_interval = dot_product
+    def collidepoly(self, other):
+        """
+        test if other polygon collides with self using seperating axis theorem
+        if collision, return projections
 
-        for point in points:
-            dot_product = dot_2d(point, axis)
+        arguments:
+        other -- a polygon object
 
-            min_interval = min(min_interval, dot_product)
-            max_interval = max(max_interval, dot_product)
+        returns:
+        an array of projections
+        """
+        # a projection is a vector representing the span of a polygon projected
+        # onto an axis
+        projections = []
 
-        return (min_interval, max_interval)
+        for edge in chain(self._make_edges(), other._make_edges()):
+            print(edge)
+            edge = _normalize(edge)
+            # the separating axis is the line perpendicular to the edge
+            axis = _perp(edge)
+            self_projection = self.project(axis)
+            other_projection = other.project(axis)
+            # if self and other do not intersect on any axis, they do not
+            # intersect in space
+            if not _intersect(self_projection, other_projection):
+                return False
+            # find the overlapping portion of the projections
+            projection = self_projection[1] - other_projection[0]
+            projections.append((axis[0] * projection, axis[1] * projection))
+        return projections
 
     def end_frame(self):
         self.shape_calculated = False
+        super(Polygon, self).end_frame()
 
 
 class Creature(Polygon):
@@ -177,8 +221,9 @@ class Creature(Polygon):
         stats = ["Creature Stats"]
         stats.append("Abs Position: {:.0f}, {:.0f}".format(*self.absolute_position))
         stats.append("Position: {:.0f}, {:.0f}".format(*self.position))
-        stats.append("Health: {}".format(self.color))
-        stats.append("Parent: {}".format(self.parent))
+        stats.append("Vison Cone Abs Pos: {:.0f}, {:.0f}".format(*self.vision_cone.absolute_position))
+        stats.append("Vison Cone Pos: {:.0f}, {:.0f}".format(*self.vision_cone.position))
+        stats.append("Children: {}".format(self.children))
 
         return stats
 
@@ -214,4 +259,3 @@ class VisionCone(Polygon):
         scaled_centered_shape = [[xpos - x_mean, ypos - y_mean] for xpos, ypos, in scaled_shape]
 
         super(VisionCone, self).__init__(scaled_centered_shape, x, y, heading, color, 1)
-

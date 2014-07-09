@@ -138,6 +138,8 @@ class QuadTree(object):
         # Make the object_map no longer point to the old node
         del self.object_map[remove_object]
 
+        self.trim_empty_nodes()
+
     def remove_from_node(self, remove_object):
         self.scene_objects.remove(remove_object)
 

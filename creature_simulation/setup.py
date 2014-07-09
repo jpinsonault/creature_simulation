@@ -8,8 +8,8 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=[
     	Extension("PygameUtils", ["PygameUtils.pyx"]),
-    	Extension("GraphNode", ["GraphNode.py"]),
-    	Extension("GameObjects", ["GameObjects.py"]),
+    	# Extension("GraphNode", ["GraphNode.py"]),
+    	# Extension("GameObjects", ["GameObjects.py"]),
         Extension("Camera", ["Camera.py"]),
     	Extension("QuadTree", ["QuadTree.pyx"])
     ],

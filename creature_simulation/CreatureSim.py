@@ -57,7 +57,6 @@ class CreatureSim(PyGameBase):
     MIN_GAME_SPEED = .1
     WORLD_WIDTH = 100000
     WORLD_HEIGHT = 100000
-
     SELECTED_COLOR = GREEN
 
     def __init__(self):
@@ -273,7 +272,6 @@ class CreatureSim(PyGameBase):
         self.ui.add(self.speed_textbox)
         self.ui.add(self.creature_stats_textbox)
         self.ui.add(self.num_creatures_textbox)
-
 
     def update_creature_positions(self):
         if not self.paused:

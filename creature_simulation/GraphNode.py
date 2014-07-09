@@ -1,4 +1,3 @@
-from blist import blist
 from operator import add
 import numpy as np
 from PygameUtils import rotate_around
