@@ -31,7 +31,7 @@ _normalize = lambda V: [i / _mag(V) for i in V]       # normalize a vector
 #     if magnitude == 0.0:
 #         return point
 #     else:
-#         return [i / magnitude for i in point] 
+#         return [i / magnitude for i in point] P
 
 _intersect = lambda A, B: (A[1] > B[0] and B[1] > A[0]) # intersection test
 _unzip = lambda zipped: zip(*zipped)                    # unzip a list of tuples
@@ -67,10 +67,10 @@ class Polygon(GraphNode):
 
 
     def draw(self, screen, camera):
-        
+
         self.calc_shape_rotation()
         self.onscreen_shape_coords = [camera.scale(point) for point in self.absolute_shape]
-    
+
         if self.selected:
             draw_color = GREEN
         else:
@@ -107,7 +107,6 @@ class Polygon(GraphNode):
             parent = self.parent
             if parent:
                 self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
-            print("Rotation: {}".format(rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)))
             self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
 
             self.shape_calculated = True
@@ -119,7 +118,7 @@ class Polygon(GraphNode):
     def collide_point_poly(self, point):
         """
             Returns true if point collides with this polygon
-            Uses an algorithm lifted from 
+            Uses an algorithm lifted from
                 http://geospatialpython.com/2011/01/point-in-polygon.html
         """
         x, y = point
@@ -173,8 +172,7 @@ class Polygon(GraphNode):
         projections = []
 
         for edge in chain(self._make_edges(), other._make_edges()):
-            print(edge)
-            edge = _normalize(edge)
+                edge = _normalize(edge)
             # the separating axis is the line perpendicular to the edge
             axis = _perp(edge)
             self_projection = self.project(axis)
