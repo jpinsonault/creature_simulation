@@ -178,6 +178,12 @@ class CreatureSim(PyGameBase):
             if event.key == K_t:
                 self.draw_quadtree = not self.draw_quadtree
 
+            if event.key == K_F5:
+                self.draw_quadtree = not self.draw_quadtree
+
+            if event.key == K_F9:
+                self.draw_quadtree = not self.draw_quadtree
+
             if event.key == K_p:
                 self.paused = not self.paused
 
@@ -202,6 +208,12 @@ class CreatureSim(PyGameBase):
         ########################     
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_click()
+
+    def save_state(self):
+        pass
+
+    def load_state(self):
+        pass
 
     def toggle_follow_creature(self):
         self.follow_creature = not self.follow_creature
@@ -266,6 +278,9 @@ class CreatureSim(PyGameBase):
         self.quadtree.insert_objects(self.creatures)
         self.quadtree.insert_objects(self.foods)
 
+        #export creature data for betting
+        self.export_creatures()
+
         # Setup text boxes
         self.speed_textbox = TextBox("", (10, self.CAM_HEIGHT - 40))
         self.creature_stats_textbox = MultilineTextBox([""], (10, 10))
@@ -275,9 +290,6 @@ class CreatureSim(PyGameBase):
         self.ui.add(self.speed_textbox)
         self.ui.add(self.creature_stats_textbox)
         self.ui.add(self.num_creatures_textbox)
-
-        #export creature data for betting
-        self.export_creatures()
 
     def export_creatures(self):
         with open('weight_data.json', 'w+') as f:
