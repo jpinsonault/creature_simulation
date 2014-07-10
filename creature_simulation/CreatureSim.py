@@ -18,6 +18,7 @@ from Toggler import Toggler
 from UserInterface import UserInterface
 from UserInterface import TextBox
 from UserInterface import MultilineTextBox
+from json import dumps
 
 from Colors import *
 
@@ -243,17 +244,19 @@ class CreatureSim(PyGameBase):
         """Sets up various game world objects"""
         self.creatures = []
         self.foods = []
+        num_of_creatures = 400
+        game_bounds = (-2500, 2500)
 
         # Create creatures
-        for x in range(400):
-            new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
+        for x in range(num_of_creatures):
+            new_creature = Creature(x=randrange(*game_bounds), y=randrange(*game_bounds), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
             new_creature.calc_absolute_position()
-
+         
         # Create foods
-        for x in range(100):
-            new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=DARKGREEN)
+        for x in range(num_of_creatures):
+            new_food = Food(x=randrange(*game_bounds), y=randrange(*game_bounds), color=DARKGREEN)
             self.foods.append(new_food)
             new_food.reparent_to(self.scene)
             new_food.calc_absolute_position()
@@ -272,6 +275,13 @@ class CreatureSim(PyGameBase):
         self.ui.add(self.speed_textbox)
         self.ui.add(self.creature_stats_textbox)
         self.ui.add(self.num_creatures_textbox)
+
+        #export creature data for betting
+        self.export_creatures()
+
+    def export_creatures(self):
+        with open('weight_data.json', 'w+') as f:
+            f.write(dumps([creature.nn.weights for creature in self.creatures]))
 
     def update_creature_positions(self):
         if not self.paused:

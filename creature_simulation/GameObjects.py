@@ -172,7 +172,7 @@ class Polygon(GraphNode):
         projections = []
 
         for edge in chain(self._make_edges(), other._make_edges()):
-                edge = _normalize(edge)
+            edge = _normalize(edge)
             # the separating axis is the line perpendicular to the edge
             axis = _perp(edge)
             self_projection = self.project(axis)
