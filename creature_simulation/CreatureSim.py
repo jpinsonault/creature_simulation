@@ -82,7 +82,7 @@ class CreatureSim(PyGameBase):
 
         self.paused = False
 
-        # When the user clicks on the screen it's position will be stored here 
+        # When the user clicks on the screen it's position will be stored here
         self.mouse_screen_position = None
         self.mouse_real_position = None
 
@@ -128,15 +128,16 @@ class CreatureSim(PyGameBase):
         self.draw_ui()
 
         self.scene.end_frame()
-        
+
         pygame.display.flip()
 
     def handle_collisions(self):
-        # possible_collisions = self.quadtree.get_all_collisions()
+        # Get possible collisions for each creature
+        for creature in self.creatures:
+            first_pass = self.quadtree.get_objects_at_bounds(creature.get_bounds())
 
-        # print("Objects:")
-        # pprint(possible_collisions)
-        pass
+            for scene_object in first_pass:
+                creature.check_collision(scene_object)
 
     def handle_key_presses(self):
         # Camera Zoom
@@ -198,7 +199,7 @@ class CreatureSim(PyGameBase):
                 pass
 
         # Mouse Down
-        ########################     
+        ########################
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_click()
 
@@ -259,7 +260,7 @@ class CreatureSim(PyGameBase):
             new_food.calc_absolute_position()
 
         self.camera.reparent_to(self.scene)
-            
+
         self.quadtree.insert_objects(self.creatures)
         self.quadtree.insert_objects(self.foods)
 
@@ -314,7 +315,7 @@ class CreatureSim(PyGameBase):
             speed_text = "Speed: Paused"
         else:
             speed_text = "Speed: {}x".format(self.game_speed)
-            
+
         self.speed_textbox.set(speed_text)
 
         if self.selected_creature:

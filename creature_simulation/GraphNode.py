@@ -45,6 +45,8 @@ class GraphNode(object):
         # Used for anything that's important if this object has been selected
         self.selected = False
 
+        self.current_collisions = set()
+
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
 
@@ -158,4 +160,41 @@ class GraphNode(object):
         px, py = point
 
         return px >= x and px <= x + w and py >= y and py <= y + h
+
+    def on_collide(self, other):
+        """Should be called any frame that there is a collision"""
+        self.previous_collisions = self.current_collisions
+        self.current_collisions = set()
+
+        self.current_collisions.add(other)
+
+        if other not in self.previous_collisions:
+            self.on_collide_enter(other)
+            
+            self.previous_collisions.add(other)
+
+    def finish_collisions(self):
+        """
+            Triggers on_collide_exit for each of the items that were colliding
+            last frame but aren't anymore
+
+            Should be called after all collision detection has happened
+        """
+        for scene_object in self.previous_collisions:
+            if scene_object not in self.current_collisions:
+                self.on_collide_exit(scene_object)
+
+    def on_collide_enter(self, other):
+        """
+            Abstract Base Method
+            Should only be called by on_collide the first time there is a collision'
+        """
+        pass
+
+    def on_collide_exit(self, other):
+        """
+            Abstract Base Method
+            Should be called when there was a collision last frame, but not this frame
+        """
+        pass
             

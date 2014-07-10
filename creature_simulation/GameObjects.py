@@ -172,7 +172,7 @@ class Polygon(GraphNode):
         projections = []
 
         for edge in chain(self._make_edges(), other._make_edges()):
-                edge = _normalize(edge)
+            edge = _normalize(edge)
             # the separating axis is the line perpendicular to the edge
             axis = _perp(edge)
             self_projection = self.project(axis)
@@ -185,6 +185,12 @@ class Polygon(GraphNode):
             projection = self_projection[1] - other_projection[0]
             projections.append((axis[0] * projection, axis[1] * projection))
         return projections
+
+    def check_collision(other):
+        """
+            Does a rough check with the bounding boxes, and then 
+        """
+        pass
 
     def end_frame(self):
         self.shape_calculated = False
@@ -230,6 +236,12 @@ class Creature(Polygon):
         if self.selected:
             self.vision_cone.draw(screen, camera)
 
+    def on_collide_enter(self, other):
+        # if other is a food
+
+    def on_collide_exit(self, other):
+        pass
+
 
 class Food(Polygon):
     """
@@ -249,6 +261,8 @@ class VisionCone(Polygon):
 
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         factor = 10
+        
+        # Scale the shape according to 'factor'
         scaled_shape = [[xpos*factor, ypos*factor] for xpos, ypos in self.BASE_SHAPE]
 
         x_mean = sum(point[0] for point in scaled_shape) / len(scaled_shape)
@@ -257,3 +271,10 @@ class VisionCone(Polygon):
         scaled_centered_shape = [[xpos - x_mean, ypos - y_mean] for xpos, ypos, in scaled_shape]
 
         super(VisionCone, self).__init__(scaled_centered_shape, x, y, heading, color, 1)
+
+    def on_collide_enter(self, other):
+        # if other is a food, increment food counter
+
+    def on_collide_exit(self, other):
+        # if other is a food, decrement food counter
+
