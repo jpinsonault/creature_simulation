@@ -67,8 +67,6 @@ class Polygon(GraphNode):
 
 
     def draw(self, screen, camera):
-
-        self.calc_shape_rotation()
         self.onscreen_shape_coords = [camera.scale(point) for point in self.absolute_shape]
 
         if self.selected:
@@ -101,7 +99,8 @@ class Polygon(GraphNode):
     def calc_shape_rotation(self):
         if not self.shape_calculated:
             # Offset the shape coords by our absolute_position
-            offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]] for point in self.shape]
+            offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]]
+                                        for point in self.shape]
 
             # Rotate the shape around parent's center
             parent = self.parent
@@ -141,6 +140,13 @@ class Polygon(GraphNode):
 
         return inside
 
+    def collide_bounds(self, other):
+        a_x, a_y, a_w, a_h = self.get_bounds()
+        b_x, b_y, b_w, b_h = other.get_bounds()
+
+        return ((abs(a_x - b_x) * 2 < (a_w + b_w)) and
+               (abs(a_y - b_y) * 2 < (a_h + b_h)))
+
     def _make_edges(self):
         points = self.absolute_shape
 
@@ -156,7 +162,7 @@ class Polygon(GraphNode):
         # return the span of the projection
         return min(projected_points), max(projected_points)
 
-    def collidepoly(self, other):
+    def collide_poly(self, other):
         """
         test if other polygon collides with self using seperating axis theorem
         if collision, return projections
@@ -186,12 +192,18 @@ class Polygon(GraphNode):
             projections.append((axis[0] * projection, axis[1] * projection))
         return projections
 
-    def check_collision(other):
+    def check_collision(self, other):
         """
-            Does a rough check with the bounding boxes, and then 
+            Does a rough check with the bounding boxes, and then
+            does a poly-on-poly check
         """
-        pass
+        if self.collide_bounds(other):
+            if self.collide_poly(other):
+                self.on_collide(other)
+                return True
 
+        return False
+        
     def end_frame(self):
         self.shape_calculated = False
         super(Polygon, self).end_frame()
@@ -215,6 +227,9 @@ class Creature(Polygon):
         self.vision_cone.visible = False
         self.vision_cone.reparent_to(self)
         self.vision_cone.calc_absolute_position()
+        self.vision_cone.calc_shape_rotation()
+
+        self.food_seen = 0
 
 
     def get_stats(self):
@@ -227,7 +242,7 @@ class Creature(Polygon):
         stats.append("Position: {:.0f}, {:.0f}".format(*self.position))
         stats.append("Vison Cone Abs Pos: {:.0f}, {:.0f}".format(*self.vision_cone.absolute_position))
         stats.append("Vison Cone Pos: {:.0f}, {:.0f}".format(*self.vision_cone.position))
-        stats.append("Children: {}".format(self.children))
+        stats.append("Food seen: {}".format(self.food_seen))
 
         return stats
 
@@ -238,6 +253,7 @@ class Creature(Polygon):
 
     def on_collide_enter(self, other):
         # if other is a food
+        pass
 
     def on_collide_exit(self, other):
         pass
@@ -274,7 +290,9 @@ class VisionCone(Polygon):
 
     def on_collide_enter(self, other):
         # if other is a food, increment food counter
+        self.food_seen += 1
 
     def on_collide_exit(self, other):
         # if other is a food, decrement food counter
+        self.food_seen -= 1
 

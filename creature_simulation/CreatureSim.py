@@ -132,12 +132,13 @@ class CreatureSim(PyGameBase):
         pygame.display.flip()
 
     def handle_collisions(self):
-        # Get possible collisions for each creature
+        # Handle collisions for each creature's vision cone
         for creature in self.creatures:
-            first_pass = self.quadtree.get_objects_at_bounds(creature.get_bounds())
+            vision_cone = creature.vision_cone
+            first_pass = self.quadtree.get_objects_at_bounds(vision_cone.get_bounds())
 
             for scene_object in first_pass:
-                creature.check_collision(scene_object)
+                vision_cone.check_collision(scene_object)
 
     def handle_key_presses(self):
         # Camera Zoom
@@ -282,6 +283,7 @@ class CreatureSim(PyGameBase):
                 outputs = network.get_outputs()
                 creature.rotate(self.dt * outputs[0] / 100.0 / (1.0 / self.game_speed))
                 creature.move_forward(self.dt * outputs[1] / 2.0 / (1.0 / self.game_speed))
+                creature.calc_shape_rotation()
 
         # self.scene.rotate(self.dt * .0005)
 
