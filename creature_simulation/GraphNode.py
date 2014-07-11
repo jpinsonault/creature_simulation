@@ -46,6 +46,8 @@ class GraphNode(object):
         self.selected = False
 
         self.current_collisions = set()
+        self.previous_collisions = set()
+        self.in_collision_phase = False
 
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
@@ -163,15 +165,17 @@ class GraphNode(object):
 
     def on_collide(self, other):
         """Should be called any frame that there is a collision"""
-        self.previous_collisions = self.current_collisions
-        self.current_collisions = set()
+
+        # Checkts to see if this is the first collision event recieved this frame
+        if not self.in_collision_phase:
+            self.previous_collisions = self.current_collisions.copy()
+            self.current_collisions = set()
+            self.in_collision_phase = True
 
         self.current_collisions.add(other)
 
         if other not in self.previous_collisions:
             self.on_collide_enter(other)
-            
-            self.previous_collisions.add(other)
 
     def finish_collisions(self):
         """
@@ -183,6 +187,11 @@ class GraphNode(object):
         for scene_object in self.previous_collisions:
             if scene_object not in self.current_collisions:
                 self.on_collide_exit(scene_object)
+
+        self.in_collision_phase = False
+
+        for child in self.children:
+            child.finish_collisions()
 
     def on_collide_enter(self, other):
         """

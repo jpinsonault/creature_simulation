@@ -96,6 +96,10 @@ class Polygon(GraphNode):
         max_radius = self.get_bounding_circle()
         return (-max_radius, -max_radius, max_radius * 2, max_radius * 2)
 
+    def update_position(self):
+        super(Polygon, self).update_position()
+        self.calc_shape_rotation()
+
     def calc_shape_rotation(self):
         if not self.shape_calculated:
             # Offset the shape coords by our absolute_position
@@ -226,11 +230,10 @@ class Creature(Polygon):
         self.vision_cone = VisionCone(x=260, color=RED)
         self.vision_cone.visible = False
         self.vision_cone.reparent_to(self)
-        self.vision_cone.calc_absolute_position()
-        self.vision_cone.calc_shape_rotation()
+        # self.vision_cone.calc_absolute_position()
+        # self.vision_cone.calc_shape_rotation()
 
         self.food_seen = 0
-
 
     def get_stats(self):
         """
@@ -240,8 +243,7 @@ class Creature(Polygon):
         stats = ["Creature Stats"]
         stats.append("Abs Position: {:.0f}, {:.0f}".format(*self.absolute_position))
         stats.append("Position: {:.0f}, {:.0f}".format(*self.position))
-        stats.append("Vison Cone Abs Pos: {:.0f}, {:.0f}".format(*self.vision_cone.absolute_position))
-        stats.append("Vison Cone Pos: {:.0f}, {:.0f}".format(*self.vision_cone.position))
+        stats.append("Currently colliding: {}".format(self.vision_cone.current_collisions))
         stats.append("Food seen: {}".format(self.food_seen))
 
         return stats
@@ -249,7 +251,16 @@ class Creature(Polygon):
     def draw(self, screen, camera):
         super(Creature, self).draw(screen, camera)
         if self.selected:
+            vision_cone = self.vision_cone
             self.vision_cone.draw(screen, camera)
+            # def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
+            x, y, w, h = vision_cone.get_bounds()
+            shape = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
+            onscreen_shape_coords = [camera.scale(point) for point in shape]
+            draw.polygon(screen, WHITE, onscreen_shape_coords, 1)
+
+            for scene_object in self.vision_cone.current_collisions:
+                draw.circle(screen, RED, [int(num) for num in camera.scale(scene_object.absolute_position)], 50, 1)
 
     def on_collide_enter(self, other):
         # if other is a food
@@ -290,9 +301,12 @@ class VisionCone(Polygon):
 
     def on_collide_enter(self, other):
         # if other is a food, increment food counter
-        self.food_seen += 1
+        if isinstance(other, Food):
+            self.parent.food_seen += 1
 
     def on_collide_exit(self, other):
         # if other is a food, decrement food counter
-        self.food_seen -= 1
+        if isinstance(other, Food):
+            self.parent.food_seen -= 1
+
 
