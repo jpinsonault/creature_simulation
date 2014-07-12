@@ -237,6 +237,7 @@ class Creature(Polygon):
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
+        self.health = 100
         self.nn = NeuralNetwork(3, 7, 2)
         self.nn.initialize_random_network(.2)
 
@@ -247,8 +248,16 @@ class Creature(Polygon):
         self.vision_cone.reparent_to(self)
         # self.vision_cone.calc_absolute_position()
         # self.vision_cone.calc_shape_rotation()
+        self.speed = 0
 
         self.food_seen = 0
+
+    def do_everyframe_action(self, time_dt):
+        self.health -= time_dt/900.0
+        self.speed = self.nn.get_outputs()[1]
+        self.health -= abs(self.speed*time_dt)/200.0
+        if self.health <= 0:
+            self.health = 0
 
     def get_stats(self):
         """
@@ -260,6 +269,7 @@ class Creature(Polygon):
         stats.append("Position: {:.0f}, {:.0f}".format(*self.position))
         stats.append("Currently colliding: {}".format(self.vision_cone.current_collisions))
         stats.append("Food seen: {}".format(self.food_seen))
+        stats.append("Health: {}".format(self.health))
 
         return stats
 

@@ -49,8 +49,24 @@ class GraphNode(object):
         self.previous_collisions = set()
         self.in_collision_phase = False
 
+        # Events to do 
+        self.events = []
+
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
+
+    def add_event(self):
+        pass
+
+    def handle_events(self, time_dt):
+        for event in self.events:
+            event()
+        for child in self.children:
+            child.handle_events(time_dt)
+        self.do_everyframe_action(time_dt)
+
+    def do_everyframe_action(self, time_dt):
+        pass
 
     def start_frame(self):
         pass
@@ -73,7 +89,10 @@ class GraphNode(object):
     def remove_child(self, child):
         if not issubclass(type(child), GraphNode):
             raise Exception("Child must subclass GraphNode")
-        self.children.remove(child)
+        if child in self.children:
+            self.children.remove(child)
+        for a_child in self.children:
+            a_child.remove_child(child)
 
     def update_position(self):
         """Updates the absolute_positions of this object and it's children"""
