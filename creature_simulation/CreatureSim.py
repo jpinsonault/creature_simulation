@@ -18,6 +18,7 @@ from Toggler import Toggler
 from UserInterface import UserInterface
 from UserInterface import TextBox
 from UserInterface import MultilineTextBox
+from json import dumps
 
 from Colors import *
 
@@ -186,6 +187,12 @@ class CreatureSim(PyGameBase):
             if event.key == K_t:
                 self.draw_quadtree = not self.draw_quadtree
 
+            if event.key == K_F5:
+                self.draw_quadtree = not self.draw_quadtree
+
+            if event.key == K_F9:
+                self.draw_quadtree = not self.draw_quadtree
+
             if event.key == K_p:
                 self.paused = not self.paused
 
@@ -210,6 +217,12 @@ class CreatureSim(PyGameBase):
         ########################
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_click()
+
+    def save_state(self):
+        pass
+
+    def load_state(self):
+        pass
 
     def toggle_follow_creature(self):
         self.follow_creature = not self.follow_creature
@@ -252,17 +265,19 @@ class CreatureSim(PyGameBase):
         """Sets up various game world objects"""
         self.creatures = []
         self.foods = []
+        num_of_creatures = 200
+        game_bounds = (-2500, 2500)
 
         # Create creatures
-        for x in range(200):
-            new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
+        for x in range(num_of_creatures):
+            new_creature = Creature(x=randrange(*game_bounds), y=randrange(*game_bounds), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
             new_creature.calc_absolute_position()
-
+         
         # Create foods
-        for x in range(100):
-            new_food = Food(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=DARKGREEN)
+        for x in range(num_of_creatures):
+            new_food = Food(x=randrange(*game_bounds), y=randrange(*game_bounds), color=DARKGREEN)
             self.foods.append(new_food)
             new_food.reparent_to(self.scene)
             new_food.calc_absolute_position()
@@ -271,6 +286,9 @@ class CreatureSim(PyGameBase):
 
         self.quadtree.insert_objects(self.creatures)
         self.quadtree.insert_objects(self.foods)
+
+        #export creature data for betting
+        self.export_creatures()
 
         # Setup text boxes
         self.speed_textbox = TextBox("", (10, self.CAM_HEIGHT - 40))
@@ -281,6 +299,10 @@ class CreatureSim(PyGameBase):
         self.ui.add(self.speed_textbox)
         self.ui.add(self.creature_stats_textbox)
         self.ui.add(self.num_creatures_textbox)
+
+    def export_creatures(self):
+        with open('weight_data.json', 'w+') as f:
+            f.write(dumps([creature.nn.weights for creature in self.creatures]))
 
     def update_creature_positions(self):
         if not self.paused:
