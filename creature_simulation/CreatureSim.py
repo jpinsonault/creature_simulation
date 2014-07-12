@@ -196,7 +196,7 @@ class CreatureSim(PyGameBase):
             if event.key == K_p:
                 self.paused = not self.paused
 
-            if event.key == K_f:
+            if event.key == K_F11:
                 pygame.display.toggle_fullscreen()
                 self.camera.width = self.CAM_WIDTH
                 self.camera.height = self.CAM_HEIGHT
@@ -270,7 +270,7 @@ class CreatureSim(PyGameBase):
         """Sets up various game world objects"""
         self.creatures = []
         self.foods = []
-        num_of_creatures = 200
+        num_of_creatures = 100
         game_bounds = (-2500, 2500)
 
         # Create creatures
