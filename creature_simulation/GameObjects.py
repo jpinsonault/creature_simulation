@@ -25,7 +25,7 @@ _clamp = lambda a, v, b: max(a, min(b, v))              # clamp v between a and 
 _perp = lambda (x, y): [-y, x]                          # perpendicular
 _prod = lambda X: reduce(mul, X)                        # product
 _mag = lambda (x, y): sqrt(x * x + y * y)               # magnitude, or length
-_normalize = lambda V: [i / _mag(V) for i in V]       # normalize a vector
+_normalize = lambda V: [i / _mag(V) for i in V]         # normalize a vector
 # def _normalize(point):
 #     magnitude = _mag(point)
 #     if magnitude == 0.0:
@@ -148,8 +148,14 @@ class Polygon(GraphNode):
         a_x, a_y, a_w, a_h = self.get_bounds()
         b_x, b_y, b_w, b_h = other.get_bounds()
 
-        return ((abs(a_x - b_x) * 2 < (a_w + b_w)) and
-               (abs(a_y - b_y) * 2 < (a_h + b_h)))
+        a_w = a_w / 2
+        a_h = a_h / 2
+
+        a_x = a_x + a_w
+        a_y = a_y + a_h
+
+        return ((abs(a_x - b_x) < (a_w + b_w)) and
+               (abs(a_y - b_y) < (a_h + b_h)))
 
     def _make_edges(self):
         points = self.absolute_shape
@@ -201,10 +207,19 @@ class Polygon(GraphNode):
             Does a rough check with the bounding boxes, and then
             does a poly-on-poly check
         """
+        # if isinstance(self, VisionCone) and self.parent.selected and other == self.parent:
+        #     if not self.collide_bounds(other) or self.collide_poly(other):
+        #         import pdb; pdb.set_trace()
+        #         self.collide_bounds(other)
+
         if self.collide_bounds(other):
             if self.collide_poly(other):
                 self.on_collide(other)
                 return True
+
+        # if self.collide_poly(other):
+        #     self.on_collide(other)
+        #     return True
 
         return False
         
@@ -257,7 +272,7 @@ class Creature(Polygon):
             x, y, w, h = vision_cone.get_bounds()
             shape = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
             onscreen_shape_coords = [camera.scale(point) for point in shape]
-            draw.polygon(screen, WHITE, onscreen_shape_coords, 1)
+            # draw.polygon(screen, WHITE, onscreen_shape_coords, 1)
 
             for scene_object in self.vision_cone.current_collisions:
                 draw.circle(screen, RED, [int(num) for num in camera.scale(scene_object.absolute_position)], 50, 1)

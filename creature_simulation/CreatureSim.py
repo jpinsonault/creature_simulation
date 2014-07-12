@@ -254,7 +254,7 @@ class CreatureSim(PyGameBase):
         self.foods = []
 
         # Create creatures
-        for x in range(400):
+        for x in range(200):
             new_creature = Creature(x=randrange(-2500, 2500), y=randrange(-2500, 2500), color=WHITE)
             self.creatures.append(new_creature)
             new_creature.reparent_to(self.scene)
