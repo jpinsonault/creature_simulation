@@ -110,6 +110,8 @@ class CreatureSim(PyGameBase):
             self.handle_key_presses()
 
             self.update_creature_positions()
+            self.quadtree.update_objects(self.creatures)
+            
             self.handle_collisions()
             self.render_frame()
 
@@ -321,8 +323,6 @@ class CreatureSim(PyGameBase):
         # self.scene.rotate(self.dt * .0005)
 
         self.scene.update_position()
-
-        self.quadtree.update_objects(self.creatures)
 
     def speedup_game(self):
         self.game_speed = min(self.MAX_GAME_SPEED, self.game_speed + self.GAME_SPEED_INCREMENT)
