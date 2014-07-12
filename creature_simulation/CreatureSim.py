@@ -111,6 +111,7 @@ class CreatureSim(PyGameBase):
 
             self.update_creature_positions()
             self.handle_collisions()
+            self.do_obj_events()
             self.render_frame()
 
     def render_frame(self):
@@ -131,6 +132,20 @@ class CreatureSim(PyGameBase):
         self.scene.end_frame()
 
         pygame.display.flip()
+
+    def do_obj_events(self):
+        if not self.paused:
+            self.scene.handle_events(self.dt)
+            self.check_healths()
+
+    def check_healths(self):
+        def remove_obj(obj):
+            self.scene.remove_child(obj)
+            self.creatures.remove(obj)
+            self.quadtree.remove(obj)
+        for creature in self.creatures:
+            if creature.health <= 0:
+                remove_obj(creature)
 
     def handle_collisions(self):
         # Handle collisions for each creature's vision cone
