@@ -197,6 +197,11 @@ class CreatureSim(PyGameBase):
                 self.paused = not self.paused
 
             if event.key == K_f:
+                pygame.display.toggle_fullscreen()
+                self.camera.width = self.CAM_WIDTH
+                self.camera.height = self.CAM_HEIGHT
+
+            if event.key == K_f:
                 self.toggle_follow_creature()
 
             if event.key == K_RIGHTBRACKET:
