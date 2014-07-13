@@ -6,8 +6,6 @@ from math import cos
 from math import sin
 from collections import namedtuple
 
-NP_FLOAT = np.float
-
 Event = namedtuple('Event', 'function, parameters')
 
 class GraphNode(object):

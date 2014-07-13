@@ -1,24 +1,26 @@
 import os
 import pygame
 import sys
-sys.path.insert(0, '../')
 import random
 from random import randrange
+from random import randint
 from random import uniform
 from pprint import pprint
 from pygame import draw
 from pygame.locals import *
 from collections import deque
+from json import dumps
+
+# User made libraries
 from GameObjects import Background
 from GameObjects import Creature
 from GameObjects import Food
 from Camera import Camera
 from QuadTree import QuadTree
-from Toggler import Toggler
+from Breeder import Breeder
 from UserInterface import UserInterface
 from UserInterface import TextBox
 from UserInterface import MultilineTextBox
-from json import dumps
 
 from Colors import *
 
@@ -96,6 +98,8 @@ class CreatureSim(PyGameBase):
 
         self.follow_creature = False
 
+        self.breeder = Breeder()
+
     def run(self):
         self.load()
 
@@ -146,24 +150,68 @@ class CreatureSim(PyGameBase):
         def remove_obj(obj):
             self.scene.remove_child(obj)
             self.quadtree.remove(obj)
+
         for creature in self.creatures:
             if creature.health <= 0:
                 if creature.selected:
                     self.toggle_follow_creature()
                 remove_obj(creature)
                 self.creatures.remove(creature)
+
+                self._breed_creature()
+
         for food in self.foods:
             if food.eaten == True:
                 remove_obj(food)
                 self.foods.remove(food)
                 self._insert_new_food()
 
+    def _insert_new_creature(self):
+        new_creature = Creature(x=randrange(*self.game_bounds), y=randrange(*self.game_bounds), color=WHITE)
+
+        self._insert_creature(new_creature)
+
+        return new_creature
+        
+    def _insert_creature(self, creature):
+        self.creatures.append(creature)
+
+        creature.reparent_to(self.scene)
+        creature.calc_absolute_position()
+
+        self.quadtree.insert(creature)
+
     def _insert_new_food(self):
-        new_food = Food(x=randrange(*self.game_bounds), y=randrange(*self.game_bounds), color=DARKGREEN)
-        self.foods.append(new_food)
-        new_food.reparent_to(self.scene)
-        new_food.calc_absolute_position()
-        self.quadtree.insert(new_food)
+        new_food = Food(
+            x=randrange(*self.game_bounds),
+            y=randrange(*self.game_bounds),
+            color=DARKGREEN
+        )
+        
+        self._insert_food(new_food)
+
+        return new_food
+
+    def _insert_food(self, food):
+        self.foods.append(food)
+
+        food.reparent_to(self.scene)
+        food.calc_absolute_position()
+
+        self.quadtree.insert(food)
+
+    def _breed_creature(self):
+        new_weights = self.breeder.breed(self.creatures)
+
+        new_creature = Creature(
+            x=randrange(*self.game_bounds),
+            y=randrange(*self.game_bounds),
+            nn_weights=new_weights
+        )
+
+        self._insert_creature(new_creature)
+
+        return new_creature
 
     def handle_collisions(self):
         # Handle collisions for each creature's vision cone
@@ -299,13 +347,6 @@ class CreatureSim(PyGameBase):
 
                 if self.follow_creature:
                     self.attach_camera_to(hit)
-
-    def _insert_new_creature(self):
-        new_creature = Creature(x=randrange(*self.game_bounds), y=randrange(*self.game_bounds), color=WHITE)
-        self.creatures.append(new_creature)
-        new_creature.reparent_to(self.scene)
-        new_creature.calc_absolute_position()
-        self.quadtree.insert(new_creature)
 
     def load(self):
         """Sets up various game world objects"""

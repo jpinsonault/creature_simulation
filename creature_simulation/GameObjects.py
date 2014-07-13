@@ -236,20 +236,22 @@ class Creature(Polygon):
 
     MAX_HEALTH = 100
 
-    def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
+    def __init__(self, x=0, y=0, heading=0.0, color=WHITE, nn_weights=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
         self.health = self.MAX_HEALTH
         self.nn = NeuralNetwork(3, 7, 2)
-        self.nn.initialize_random_network(.2)
+        if not nn_weights:
+            self.nn.initialize_random_network()
+        else:
+            self.nn.set_network(nn_weights)
 
         # Add a vision code to the creature
         # Offset in the x direction, otherwise it would be centered over the creature
         self.vision_cone = VisionCone(x=260, color=RED)
         self.vision_cone.visible = False
         self.vision_cone.reparent_to(self)
-        # self.vision_cone.calc_absolute_position()
-        # self.vision_cone.calc_shape_rotation()
+
         self.speed = 0
 
         self.food_seen = 0

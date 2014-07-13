@@ -1,6 +1,11 @@
 from random import uniform
 from math import tanh
 
+WEIGHT_LIMIT = 0.2
+
+def _random_weight():
+    return uniform(-WEIGHT_LIMIT, WEIGHT_LIMIT)
+
 class NeuralNetwork(object):
     '''
         Holds a NeuralNetwork
@@ -26,18 +31,21 @@ class NeuralNetwork(object):
         # self.hidden_outputs = numpy.zeros((num_networks, num_hidden))
         self.hidden_outputs = [0 for x in xrange(num_hidden)]
 
-    def initialize_random_network(self, limit):
+    def initialize_random_network(self):
         # self.weights = numpy.random.rand(self.num_networks, self.num_weights)
-        self.weights = [uniform(-limit, limit) for x in xrange(self.num_weights)]
+        self.weights = [_random_weight() for x in xrange(self.num_weights)]
         # self.weights = (self.weights - .5) * (limit * 2)
 
     def set_inputs(self, inputs):
         self.weights = inputs
 
-    def get_networks(self):
+    def get_network(self):
         return self.weights
 
-    def set_networks(self, weights):
+    def set_network(self, weights):
+        if len(weights) != self.num_weights:
+            raise Exception("Number of weights doesn't match")
+
         self.weights = weights
 
     def get_outputs(self):
