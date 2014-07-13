@@ -289,7 +289,9 @@ class Creature(Polygon):
 
     def on_collide_enter(self, other):
         # if other is a food
-        pass
+        if isinstance(other, Food):
+            other.eaten = True
+            self.health = 100
 
     def on_collide_exit(self, other):
         pass
@@ -303,6 +305,7 @@ class Food(Polygon):
 
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         super(Food, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+        self.eaten = False
 
 
 class VisionCone(Polygon):
