@@ -65,6 +65,8 @@ class CreatureSim(PyGameBase):
         self.infoObject = pygame.display.Info()
         self.CAM_HEIGHT = self.infoObject.current_h - 80
         self.CAM_WIDTH = self.infoObject.current_w
+        self.num_of_creatures = 100
+        self.game_bounds = (-2500, 2500)
 
         self.running = True
         # self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=-(self.CAM_WIDTH / 2), y=-(self.CAM_HEIGHT / 2))
@@ -143,11 +145,23 @@ class CreatureSim(PyGameBase):
     def check_healths(self):
         def remove_obj(obj):
             self.scene.remove_child(obj)
-            self.creatures.remove(obj)
             self.quadtree.remove(obj)
         for creature in self.creatures:
             if creature.health <= 0:
                 remove_obj(creature)
+                self.creatures.remove(creature)
+        for food in self.foods:
+            if food.eaten == True:
+                remove_obj(food)
+                self.foods.remove(food)
+                self._insert_new_food()
+
+    def _insert_new_food(self):
+        new_food = Food(x=randrange(*self.game_bounds), y=randrange(*self.game_bounds), color=DARKGREEN)
+        self.foods.append(new_food)
+        new_food.reparent_to(self.scene)
+        new_food.calc_absolute_position()
+        self.quadtree.insert(new_food)
 
     def handle_collisions(self):
         # Handle collisions for each creature's vision cone
@@ -162,6 +176,7 @@ class CreatureSim(PyGameBase):
                     # draw.circle(self.screen, GREEN, [int(num) for num in self.camera.scale(scene_object.absolute_position)], 50, 1)
 
                 vision_cone.check_collision(scene_object)
+                creature.check_collision(scene_object)
 
         self.scene.finish_collisions()
 
@@ -283,31 +298,27 @@ class CreatureSim(PyGameBase):
                 if self.follow_creature:
                     self.attach_camera_to(hit)
 
+    def _insert_new_creature(self):
+        new_creature = Creature(x=randrange(*self.game_bounds), y=randrange(*self.game_bounds), color=WHITE)
+        self.creatures.append(new_creature)
+        new_creature.reparent_to(self.scene)
+        new_creature.calc_absolute_position()
+        self.quadtree.insert(new_creature)
+
     def load(self):
         """Sets up various game world objects"""
         self.creatures = []
         self.foods = []
-        num_of_creatures = 100
-        game_bounds = (-2500, 2500)
 
         # Create creatures
-        for x in range(num_of_creatures):
-            new_creature = Creature(x=randrange(*game_bounds), y=randrange(*game_bounds), color=WHITE)
-            self.creatures.append(new_creature)
-            new_creature.reparent_to(self.scene)
-            new_creature.calc_absolute_position()
+        for x in range(self.num_of_creatures):
+            self._insert_new_creature()
          
         # Create foods
-        for x in range(num_of_creatures):
-            new_food = Food(x=randrange(*game_bounds), y=randrange(*game_bounds), color=DARKGREEN)
-            self.foods.append(new_food)
-            new_food.reparent_to(self.scene)
-            new_food.calc_absolute_position()
+        for x in range(self.num_of_creatures):
+            self._insert_new_food()
 
         self.camera.reparent_to(self.scene)
-
-        self.quadtree.insert_objects(self.creatures)
-        self.quadtree.insert_objects(self.foods)
 
         #export creature data for betting
         self.export_creatures()
