@@ -234,10 +234,12 @@ class Creature(Polygon):
     """
     BASE_SHAPE = [[-5, 5], [-10, 0], [-5, -5], [5, -5], [10, 0], [5, 5]]
 
+    MAX_HEALTH = 100
+
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
-        self.health = 100
+        self.health = self.MAX_HEALTH
         self.nn = NeuralNetwork(3, 7, 2)
         self.nn.initialize_random_network(.2)
 
@@ -265,9 +267,6 @@ class Creature(Polygon):
             Used to display info on screen
         """
         stats = ["Creature Stats"]
-        stats.append("Abs Position: {:.0f}, {:.0f}".format(*self.absolute_position))
-        stats.append("Position: {:.0f}, {:.0f}".format(*self.position))
-        stats.append("Currently colliding: {}".format(self.vision_cone.current_collisions))
         stats.append("Food seen: {}".format(self.food_seen))
         stats.append("Health: {}".format(self.health))
 
@@ -291,7 +290,8 @@ class Creature(Polygon):
         # if other is a food
         if isinstance(other, Food):
             other.eaten = True
-            self.health = 100
+
+            self.health = min(self.MAX_HEALTH, self.health + other.food_value)
 
     def on_collide_exit(self, other):
         pass
@@ -303,9 +303,14 @@ class Food(Polygon):
     """
     BASE_SHAPE = [[-20, -20], [20, -20], [20, 20], [-20, 20]]
 
+    # How much health is given when the food is eaten
+    FOOD_VALUE = 30
+
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
         super(Food, self).__init__(self.BASE_SHAPE, x, y, heading, color)
         self.eaten = False
+
+        self.food_value = self.FOOD_VALUE
 
 
 class VisionCone(Polygon):

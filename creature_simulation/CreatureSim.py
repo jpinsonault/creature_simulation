@@ -148,6 +148,8 @@ class CreatureSim(PyGameBase):
             self.quadtree.remove(obj)
         for creature in self.creatures:
             if creature.health <= 0:
+                if creature.selected:
+                    self.toggle_follow_creature()
                 remove_obj(creature)
                 self.creatures.remove(creature)
         for food in self.foods:

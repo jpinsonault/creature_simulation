@@ -4,9 +4,11 @@ from PygameUtils import rotate_around
 from math import pi
 from math import cos
 from math import sin
+from collections import namedtuple
 
 NP_FLOAT = np.float
 
+Event = namedtuple('Event', 'function, parameters')
 
 class GraphNode(object):
     """
@@ -55,14 +57,15 @@ class GraphNode(object):
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
 
-    def add_event(self):
-        pass
+    def add_event(self, function, params):
+        self.events.append(Event(function, params))
 
     def handle_events(self, time_dt):
-        for event in self.events:
-            event()
+        for function, parameters in self.events:
+            function(parameters)
         for child in self.children:
             child.handle_events(time_dt)
+
         self.do_everyframe_action(time_dt)
 
     def do_everyframe_action(self, time_dt):
