@@ -46,7 +46,6 @@ class MultilineTextBox(TextBox):
         self.labels = [self.font.render(line, 1, self.color) for line in self.text]
 
     def clear(self):
-        print("hello")
         self.text = [""]
         self.make_label()
 
