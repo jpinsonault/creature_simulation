@@ -23,6 +23,10 @@ class TextBox(object):
         self.text = new_string
         self.make_label()
 
+    def clear(self):
+        self.text = ""
+        self.make_label()
+
     def make_label(self):
         self.label = self.font.render(self.text, 1, self.color) 
         
@@ -40,6 +44,11 @@ class MultilineTextBox(TextBox):
         x, y = self.position
 
         self.labels = [self.font.render(line, 1, self.color) for line in self.text]
+
+    def clear(self):
+        print("hello")
+        self.text = [""]
+        self.make_label()
 
     def draw(self, screen):
         x, y = self.position

@@ -39,9 +39,6 @@ class GraphNode(object):
         self.cos_radians = cos(self.heading)
         self.sin_radians = sin(self.heading)
 
-        # Used for random debugging purposes
-        self.debug = False
-        
         # Used for anything that's important if this object has been selected
         self.selected = False
 
@@ -58,15 +55,15 @@ class GraphNode(object):
     def add_event(self, function, params):
         self.events.append(Event(function, params))
 
-    def handle_events(self, time_dt):
+    def handle_events(self, time_dt, game_speed):
         for function, parameters in self.events:
             function(parameters)
         for child in self.children:
-            child.handle_events(time_dt)
+            child.handle_events(time_dt, game_speed)
 
-        self.do_everyframe_action(time_dt)
+        self.do_everyframe_action(time_dt, game_speed)
 
-    def do_everyframe_action(self, time_dt):
+    def do_everyframe_action(self, time_dt, game_speed):
         pass
 
     def start_frame(self):

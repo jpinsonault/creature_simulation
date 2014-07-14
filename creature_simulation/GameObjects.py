@@ -178,10 +178,10 @@ class Polygon(GraphNode):
         if collision, return projections
 
         arguments:
-        other -- a polygon object
+            other -- a polygon object
 
         returns:
-        an array of projections
+            an array of projections
         """
         # a projection is a vector representing the span of a polygon projected
         # onto an axis
@@ -256,10 +256,10 @@ class Creature(Polygon):
 
         self.food_seen = 0
 
-    def do_everyframe_action(self, time_dt):
+    def do_everyframe_action(self, time_dt, game_speed):
         self.health -= time_dt/900.0
         self.speed = self.nn.get_outputs()[1]
-        self.health -= abs(self.speed*time_dt)/200.0
+        self.health -= (abs(self.speed*time_dt) / 200.0) * game_speed
         if self.health <= 0:
             self.health = 0
 

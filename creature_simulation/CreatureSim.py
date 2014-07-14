@@ -75,8 +75,15 @@ class CreatureSim(PyGameBase):
         self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=0, y=0, zoom=1.0)
         self.scene = Background()
         self.screen = pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
+
         # QuadTree for collision detection
-        self.quadtree = QuadTree(bounds=(-self.WORLD_WIDTH/2, -self.WORLD_HEIGHT/2, self.WORLD_WIDTH, self.WORLD_HEIGHT), depth=9)
+        self.quadtree = QuadTree(
+            bounds=(
+                -self.WORLD_WIDTH/2,
+                -self.WORLD_HEIGHT/2,
+                self.WORLD_WIDTH,
+                self.WORLD_HEIGHT),
+            depth=9)
 
         self.ui = UserInterface(self.screen)
 
@@ -143,7 +150,7 @@ class CreatureSim(PyGameBase):
 
     def do_obj_events(self):
         if not self.paused:
-            self.scene.handle_events(self.dt)
+            self.scene.handle_events(self.dt, self.game_speed)
             self.check_healths()
 
     def check_healths(self):
@@ -154,7 +161,7 @@ class CreatureSim(PyGameBase):
         for creature in self.creatures:
             if creature.health <= 0:
                 if creature.selected:
-                    self.toggle_follow_creature()
+                    self.unfollow_creature()
                 remove_obj(creature)
                 self.creatures.remove(creature)
 
@@ -167,7 +174,11 @@ class CreatureSim(PyGameBase):
                 self._insert_new_food()
 
     def _insert_new_creature(self):
-        new_creature = Creature(x=randrange(*self.game_bounds), y=randrange(*self.game_bounds), color=WHITE)
+        new_creature = Creature(
+            x=randrange(*self.game_bounds),
+            y=randrange(*self.game_bounds),
+            color=WHITE
+        )
 
         self._insert_creature(new_creature)
 
@@ -217,14 +228,11 @@ class CreatureSim(PyGameBase):
         # Handle collisions for each creature's vision cone
         for creature in self.creatures:
             vision_cone = creature.vision_cone
+
             # Get rough idea of what things could be colliding
             first_pass = self.quadtree.get_objects_at_bounds(vision_cone.get_bounds())
 
             for scene_object in first_pass:
-                # if creature.selected:
-                    # draw.circle(self.screen, RED, [40,40], 50, 1)
-                    # draw.circle(self.screen, GREEN, [int(num) for num in self.camera.scale(scene_object.absolute_position)], 50, 1)
-
                 vision_cone.check_collision(scene_object)
                 creature.check_collision(scene_object)
 
@@ -312,13 +320,35 @@ class CreatureSim(PyGameBase):
         pass
 
     def toggle_follow_creature(self):
-        self.follow_creature = not self.follow_creature
-
         if self.selected_creature:
+            self.follow_creature = not self.follow_creature
+            
             if self.follow_creature:
                 self.attach_camera_to(self.selected_creature)
             else:
                 self.detach_camera_from(self.selected_creature)
+
+    def unfollow_creature(self):
+        if self.selected_creature:
+            if self.follow_creature:
+                self.detach_camera_from(self.selected_creature)
+
+            self.unselect_creature()
+
+            self.follow_creature = False
+
+    def select_creature(self, creature):
+        self.selected_creature = creature
+
+        creature.selected = True
+        creature.vision_cone.visible = True
+
+    def unselect_creature(self):
+        if self.selected_creature:
+            self.selected_creature.selected = False
+            self.selected_creature.vision_cone.visible = False
+
+            self.selected_creature = None
 
     def attach_camera_to(self, scene_object):
         self.camera.set_position([0, 0])
@@ -337,13 +367,8 @@ class CreatureSim(PyGameBase):
         if hit:
             # If our hit is a Creature
             if issubclass(type(hit), Creature):
-                hit.debug = not hit.debug
-                if self.selected_creature:
-                    self.selected_creature.selected = False
-                    self.selected_creature.vision_cone.visible = False
-                self.selected_creature = hit
-                hit.selected = True
-                hit.vision_cone.visible = True
+                self.unselect_creature()
+                self.select_creature(hit)
 
                 if self.follow_creature:
                     self.attach_camera_to(hit)
@@ -386,8 +411,8 @@ class CreatureSim(PyGameBase):
                 network = creature.nn
                 network.compute_network()
                 outputs = network.get_outputs()
-                creature.rotate(self.dt * outputs[0] / 100.0 / (1.0 / self.game_speed))
-                creature.move_forward(self.dt * outputs[1] / 2.0 / (1.0 / self.game_speed))
+                creature.rotate((self.dt * outputs[0] / 100.0) * self.game_speed)
+                creature.move_forward((self.dt * outputs[1] / 2.0) * self.game_speed)
 
         # self.scene.rotate(self.dt * .0005)
 
@@ -424,5 +449,7 @@ class CreatureSim(PyGameBase):
 
         if self.selected_creature:
             self.creature_stats_textbox.set(self.selected_creature.get_stats())
+        else:
+            self.creature_stats_textbox.clear()
 
         ui.draw()
