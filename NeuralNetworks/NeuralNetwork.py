@@ -91,7 +91,6 @@ class NeuralNetwork(object):
                 weights_index += 1
 
         # Output biases
-        # outputs = [0.0 for x in xrange(self.num_hidden)]
         for output_index in range(self.num_outputs):
             outputs[output_index] += weights[weights_index]
             weights_index += 1

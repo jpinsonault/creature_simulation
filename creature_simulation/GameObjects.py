@@ -98,7 +98,7 @@ class Polygon(GraphNode):
 
     def update_position(self):
         super(Polygon, self).update_position()
-        self.calc_shape_rotation()
+        # self.calc_shape_rotation()
 
     def calc_shape_rotation(self):
         if not self.shape_calculated:
@@ -125,6 +125,7 @@ class Polygon(GraphNode):
                 http://geospatialpython.com/2011/01/point-in-polygon.html
         """
         x, y = point
+        self.calc_shape_rotation()
         poly = self.absolute_shape
 
         n = len(poly)
@@ -187,6 +188,9 @@ class Polygon(GraphNode):
         # onto an axis
         projections = []
 
+        self.calc_shape_rotation()
+        other.calc_shape_rotation()
+
         for edge in chain(self._make_edges(), other._make_edges()):
             edge = _normalize(edge)
             # the separating axis is the line perpendicular to the edge
@@ -232,7 +236,8 @@ class Creature(Polygon):
     """
         Object representing the creature on screen
     """
-    BASE_SHAPE = [[-5, 5], [-10, 0], [-5, -5], [5, -5], [10, 0], [5, 5]]
+    # BASE_SHAPE = [[-5, 5], [-10, 0], [-5, -5], [5, -5], [10, 0], [5, 5]]
+    BASE_SHAPE = [[10, 0], [0, -10], [-5, -5], [-5, 5], [0, 10]]
 
     MAX_HEALTH = 100
 
@@ -248,7 +253,7 @@ class Creature(Polygon):
 
         # Add a vision code to the creature
         # Offset in the x direction, otherwise it would be centered over the creature
-        self.vision_cone = VisionCone(x=260, color=RED)
+        self.vision_cone = VisionCone(x=265, color=RED)
         self.vision_cone.visible = False
         self.vision_cone.reparent_to(self)
 
@@ -256,12 +261,13 @@ class Creature(Polygon):
         self.rotation = 0
 
         self.food_seen = 0
+        self.total_food_eaten = 0
 
     def do_everyframe_action(self, time_dt, game_speed):
-        self.health -= time_dt/900.0
-        self.rotation = self.nn.get_outputs()[0] / 100
-        self.speed = self.nn.get_outputs()[1] / 10
-        self.health -= (abs(self.speed*time_dt) / 5000.0) * game_speed
+        self.health -= time_dt/500.0 * game_speed
+        self.rotation = self.nn.get_outputs()[0] / 200
+        self.speed = self.nn.get_outputs()[1] / 3
+        self.health -= (abs(self.speed*time_dt) / 8000.0) * game_speed
 
         self.nn.set_inputs([self.food_seen, self.health / 100])
 
@@ -274,11 +280,11 @@ class Creature(Polygon):
             Used to display info on screen
         """
         stats = ["Creature Stats"]
-        stats.append("Speed: {}".format(self.speed))
+        stats.append("Speed: {:.4f}".format(self.speed))
+        stats.append("Rotation: {:.4f}".format(self.rotation))
         stats.append("Food seen: {}".format(self.food_seen))
-        stats.append("Health: {}".format(self.health))
-        stats.append("Inputs: {}".format(self.nn.get_inputs()))
-        stats.append("Outputs: {}".format(self.nn.get_outputs()))
+        stats.append("Health: {:.2f}".format(self.health))
+        stats.append("Food Eaten: {}".format(self.total_food_eaten))
 
         return stats
 
@@ -301,6 +307,7 @@ class Creature(Polygon):
         if isinstance(other, Food):
             other.eaten = True
 
+            self.total_food_eaten += 1
             self.health = min(self.MAX_HEALTH, self.health + other.food_value)
 
     def on_collide_exit(self, other):
