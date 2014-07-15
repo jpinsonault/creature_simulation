@@ -411,8 +411,8 @@ class CreatureSim(PyGameBase):
                 network = creature.nn
                 network.compute_network()
                 outputs = network.get_outputs()
-                creature.rotate((self.dt * outputs[0] / 100.0) * self.game_speed)
-                creature.move_forward((self.dt * outputs[1] / 2.0) * self.game_speed)
+                creature.rotate((self.dt * outputs[0] / 1000.0) * self.game_speed)
+                creature.move_forward((self.dt * outputs[1] / 20.0) * self.game_speed)
 
         # self.scene.rotate(self.dt * .0005)
 

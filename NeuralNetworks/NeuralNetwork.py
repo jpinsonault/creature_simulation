@@ -1,7 +1,7 @@
 from random import uniform
 from math import tanh
 
-WEIGHT_LIMIT = 0.2
+WEIGHT_LIMIT = 10
 
 def _random_weight():
     return uniform(-WEIGHT_LIMIT, WEIGHT_LIMIT)
@@ -37,7 +37,7 @@ class NeuralNetwork(object):
         # self.weights = (self.weights - .5) * (limit * 2)
 
     def set_inputs(self, inputs):
-        self.weights = inputs
+        self.inputs = inputs
 
     def get_network(self):
         return self.weights
@@ -47,6 +47,9 @@ class NeuralNetwork(object):
             raise Exception("Number of weights doesn't match")
 
         self.weights = weights
+
+    def get_inputs(self):
+        return self.inputs
 
     def get_outputs(self):
         return self.outputs

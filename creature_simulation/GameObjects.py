@@ -240,7 +240,7 @@ class Creature(Polygon):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
         self.health = self.MAX_HEALTH
-        self.nn = NeuralNetwork(3, 7, 2)
+        self.nn = NeuralNetwork(2, 5, 2)
         if not nn_weights:
             self.nn.initialize_random_network()
         else:
@@ -257,9 +257,12 @@ class Creature(Polygon):
         self.food_seen = 0
 
     def do_everyframe_action(self, time_dt, game_speed):
-        self.health -= time_dt/900.0
+        # self.health -= time_dt/900.0
         self.speed = self.nn.get_outputs()[1]
         self.health -= (abs(self.speed*time_dt) / 200.0) * game_speed
+
+        self.nn.set_inputs([self.food_seen, self.health])
+
         if self.health <= 0:
             self.health = 0
 
@@ -271,6 +274,8 @@ class Creature(Polygon):
         stats = ["Creature Stats"]
         stats.append("Food seen: {}".format(self.food_seen))
         stats.append("Health: {}".format(self.health))
+        stats.append("Inputs: {}".format(self.nn.get_inputs()))
+        stats.append("Outputs: {}".format(self.nn.get_outputs()))
 
         return stats
 
