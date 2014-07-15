@@ -9,6 +9,7 @@ from pprint import pprint
 from pygame import draw
 from pygame.locals import *
 from collections import deque
+from collections import namedtuple
 from json import dumps
 
 # User made libraries
@@ -21,8 +22,11 @@ from Breeder import Breeder
 from UserInterface import UserInterface
 from UserInterface import TextBox
 from UserInterface import MultilineTextBox
+from StatsTracker import StatsTracker
 
 from Colors import *
+
+CreatureStats = namedtuple('CreatureStats', 'max, average, top_10_percent')
 
 
 class PyGameBase(object):
@@ -68,7 +72,7 @@ class CreatureSim(PyGameBase):
         self.CAM_HEIGHT = self.infoObject.current_h - 80
         self.CAM_WIDTH = self.infoObject.current_w
         self.num_of_creatures = 100
-        self.num_of_food = 80
+        self.num_of_food = 100
         self.game_bounds = (-5000, 5000)
 
         self.running = True
@@ -107,6 +111,8 @@ class CreatureSim(PyGameBase):
         self.follow_creature = False
 
         self.breeder = Breeder()
+
+        self.population_stats = StatsTracker()
 
     def run(self):
         self.load()
@@ -395,12 +401,14 @@ class CreatureSim(PyGameBase):
         # Setup text boxes
         self.speed_textbox = TextBox("", (10, self.CAM_HEIGHT - 40))
         self.creature_stats_textbox = MultilineTextBox([""], (10, 10))
+        self.population_stats_textbox = MultilineTextBox([""], (self.CAM_WIDTH-300, 10))
         num_creatures_text = "{} Creatures, {} Food".format(len(self.creatures), len(self.foods))
         self.num_creatures_textbox = TextBox(num_creatures_text, (10, self.CAM_HEIGHT - 70))
 
         self.ui.add(self.speed_textbox)
         self.ui.add(self.creature_stats_textbox)
         self.ui.add(self.num_creatures_textbox)
+        self.ui.add(self.population_stats_textbox)
 
     def export_creatures(self):
         with open('weight_data.json', 'w+') as f:
@@ -452,5 +460,8 @@ class CreatureSim(PyGameBase):
             self.creature_stats_textbox.set(self.selected_creature.get_stats())
         else:
             self.creature_stats_textbox.clear()
+
+        stats = self.population_stats.update(self.creatures)
+        self.population_stats_textbox.set(stats)
 
         ui.draw()

@@ -275,7 +275,7 @@ class QuadTree(object):
 
         nodes = self.nodes
         if not nodes and not self.scene_objects:
-            return None
+            return []
         
         bounds = self.bounds
         cdef float bx = bounds[0]
@@ -292,9 +292,9 @@ class QuadTree(object):
         cdef float tx2 = tx + tw
         cdef float ty2 = ty + th
 
-        # check if node doesn't intersect with target bounds - if it doesn't return None
+        # check if node doesn't intersect with target bounds - if it doesn't return []
         if (tx >= bx2 or ty >= by2 or tx2 <= bx or ty2 <= by):
-            return None
+            return []
         
 
         # if the node is fully overlaped by bounds then add all its objects and all objects which are held by subnodes and their subnodes
@@ -327,7 +327,7 @@ class QuadTree(object):
         if found_objects:
             return found_objects
         
-        return None
+        return []
 
     def get_nodes_at_bounds(self, target_bounds):
         """
