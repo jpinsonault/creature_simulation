@@ -68,6 +68,7 @@ class CreatureSim(PyGameBase):
         self.CAM_HEIGHT = self.infoObject.current_h - 80
         self.CAM_WIDTH = self.infoObject.current_w
         self.num_of_creatures = 100
+        self.num_of_food = 100
         self.game_bounds = (-2500, 2500)
 
         self.running = True
@@ -383,7 +384,7 @@ class CreatureSim(PyGameBase):
             self._insert_new_creature()
          
         # Create foods
-        for x in range(self.num_of_creatures):
+        for x in range(self.num_of_food):
             self._insert_new_food()
 
         self.camera.reparent_to(self.scene)
@@ -410,9 +411,9 @@ class CreatureSim(PyGameBase):
             for creature in self.creatures:
                 network = creature.nn
                 network.compute_network()
-                outputs = network.get_outputs()
-                creature.rotate((self.dt * outputs[0] / 1000.0) * self.game_speed)
-                creature.move_forward((self.dt * outputs[1] / 20.0) * self.game_speed)
+
+                creature.rotate((self.dt * creature.rotation) * self.game_speed)
+                creature.move_forward((self.dt * creature.speed) * self.game_speed)
 
         # self.scene.rotate(self.dt * .0005)
 

@@ -253,15 +253,17 @@ class Creature(Polygon):
         self.vision_cone.reparent_to(self)
 
         self.speed = 0
+        self.rotation = 0
 
         self.food_seen = 0
 
     def do_everyframe_action(self, time_dt, game_speed):
-        # self.health -= time_dt/900.0
-        self.speed = self.nn.get_outputs()[1]
-        self.health -= (abs(self.speed*time_dt) / 200.0) * game_speed
+        self.health -= time_dt/900.0
+        self.rotation = self.nn.get_outputs()[0] / 100
+        self.speed = self.nn.get_outputs()[1] / 10
+        self.health -= (abs(self.speed*time_dt) / 5000.0) * game_speed
 
-        self.nn.set_inputs([self.food_seen, self.health])
+        self.nn.set_inputs([self.food_seen, self.health / 100])
 
         if self.health <= 0:
             self.health = 0
@@ -272,6 +274,7 @@ class Creature(Polygon):
             Used to display info on screen
         """
         stats = ["Creature Stats"]
+        stats.append("Speed: {}".format(self.speed))
         stats.append("Food seen: {}".format(self.food_seen))
         stats.append("Health: {}".format(self.health))
         stats.append("Inputs: {}".format(self.nn.get_inputs()))

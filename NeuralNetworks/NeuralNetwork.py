@@ -1,7 +1,7 @@
 from random import uniform
 from math import tanh
 
-WEIGHT_LIMIT = 10
+WEIGHT_LIMIT = 1
 
 def _random_weight():
     return uniform(-WEIGHT_LIMIT, WEIGHT_LIMIT)
@@ -69,6 +69,7 @@ class NeuralNetwork(object):
 
         # Input-to-hidden weights
         for hidden_index in range(self.num_hidden):
+            hidden_sums[hidden_index] = 0.0
             for input_index in range(self.num_inputs):
                 hidden_sums[hidden_index] += inputs[input_index] * weights[weights_index]
                 weights_index += 1
@@ -79,7 +80,6 @@ class NeuralNetwork(object):
             weights_index += 1
 
         # Apply activation function
-        hidden_outputs = [0 for x in xrange(self.num_hidden)]
         for hidden_index in range(self.num_hidden):
             hidden_outputs[hidden_index] = self.hyperTan(hidden_sums[hidden_index])
 
@@ -91,7 +91,7 @@ class NeuralNetwork(object):
                 weights_index += 1
 
         # Output biases
-        outputs = [0 for x in xrange(self.num_hidden)]
+        # outputs = [0.0 for x in xrange(self.num_hidden)]
         for output_index in range(self.num_outputs):
             outputs[output_index] += weights[weights_index]
             weights_index += 1
