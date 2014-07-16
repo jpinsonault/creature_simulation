@@ -332,7 +332,10 @@ class CreatureSim(PyGameBase):
         def retrieve_items():
             with open('weight_data.pickle', 'r+') as f:
                 return pickle.load(f)
-        creatures, foods = retrieve_items()
+        try:
+            creatures, foods = retrieve_items()
+        except:
+            return
         self.reload(creatures, foods)
 
     def toggle_follow_creature(self):
