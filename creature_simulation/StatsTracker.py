@@ -12,14 +12,7 @@ class StatsTracker(object):
 			"current_best": 0,
 			"all_time_best": 0,
 			"average": 0,
-			"top_10_percent": 0,
 		}
-		
-	def _best(self):
-		pass
-
-	def _average(self):
-		pass
 
 	def _top_percent(self, percent=0.1):
 		pass
