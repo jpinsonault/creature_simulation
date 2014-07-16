@@ -39,3 +39,4 @@ nosetests.xml
 .pydevprojectcreature_sim/
 
 weight_data.json
+weight_data.pickle
