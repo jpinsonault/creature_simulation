@@ -2,6 +2,7 @@ import os
 import pygame
 import sys
 import random
+import pickle
 from random import randrange
 from random import randint
 from random import uniform
@@ -10,7 +11,6 @@ from pygame import draw
 from pygame.locals import *
 from collections import deque
 from collections import namedtuple
-from json import dumps
 
 # User made libraries
 from GameObjects import Background
@@ -116,9 +116,7 @@ class CreatureSim(PyGameBase):
 
     def run(self):
         self.load()
-
         self.setup_keys()
-
         self.game_loop()
 
     def game_loop(self):
@@ -131,7 +129,7 @@ class CreatureSim(PyGameBase):
 
             self.update_creature_positions()
             self.quadtree.update_objects(self.creatures)
-            
+
             self.handle_collisions()
             self.do_obj_events()
             self.render_frame()
@@ -190,7 +188,7 @@ class CreatureSim(PyGameBase):
         self._insert_creature(new_creature)
 
         return new_creature
-        
+
     def _insert_creature(self, creature):
         self.creatures.append(creature)
 
@@ -205,7 +203,7 @@ class CreatureSim(PyGameBase):
             y=randrange(*self.game_bounds),
             color=DARKGREEN
         )
-        
+
         self._insert_food(new_food)
 
         return new_food
@@ -285,10 +283,10 @@ class CreatureSim(PyGameBase):
                 self.draw_quadtree = not self.draw_quadtree
 
             if event.key == K_F5:
-                self.draw_quadtree = not self.draw_quadtree
+                self.save_state()
 
             if event.key == K_F9:
-                self.draw_quadtree = not self.draw_quadtree
+                self.load_state()
 
             if event.key == K_p:
                 self.paused = not self.paused
@@ -321,15 +319,26 @@ class CreatureSim(PyGameBase):
             self.handle_click()
 
     def save_state(self):
-        pass
+        def export_items(items):
+            with open('weight_data.pickle', 'w+') as f:
+                pickle.dump(items, f)
+        # dump the creatures and food stuffs
+        # let's get all the creatures first
+        x = self.creatures
+        y = self.foods
+        export_items([x, y])
 
     def load_state(self):
-        pass
+        def retrieve_items():
+            with open('weight_data.pickle', 'r+') as f:
+                return pickle.load(f)
+        creatures, foods = retrieve_items()
+        self.reload(creatures, foods)
 
     def toggle_follow_creature(self):
         if self.selected_creature:
             self.follow_creature = not self.follow_creature
-            
+
             if self.follow_creature:
                 self.attach_camera_to(self.selected_creature)
             else:
@@ -380,23 +389,50 @@ class CreatureSim(PyGameBase):
                 if self.follow_creature:
                     self.attach_camera_to(hit)
 
-    def load(self):
+    def _reload_init(self):
+        self.scene = Background()
+        self.quadtree = QuadTree(
+            bounds=(
+                -self.WORLD_WIDTH/2,
+                -self.WORLD_HEIGHT/2,
+                self.WORLD_WIDTH,
+                self.WORLD_HEIGHT),
+            depth=9)
+        self.ui = UserInterface(self.screen)
+        self.dt = 0
+        # When the user clicks on the screen it's position will be stored here
+        self.mouse_screen_position = None
+        self.mouse_real_position = None
+        # How fast everything moves
+        self.game_speed = 1.0
+        self.selected_creature = None
+        self.follow_creature = False
+        self.population_stats = StatsTracker()
+
+    def reload(self, creatures, foods):
+        self._reload_init()
+        self.load(creatures, foods)
+
+    def load(self, creatures=None, foods=None):
         """Sets up various game world objects"""
         self.creatures = []
         self.foods = []
 
-        # Create creatures
-        for x in range(self.num_of_creatures):
-            self._insert_new_creature()
-         
-        # Create foods
-        for x in range(self.num_of_food):
-            self._insert_new_food()
+        if creatures and foods:
+            for creature in creatures:
+                self._insert_creature(creature)
+            for food in foods:
+                self._insert_food(food)
+        else:
+            # Create creatures
+            for x in range(self.num_of_creatures):
+                self._insert_new_creature()
+
+            # Create foods
+            for x in range(self.num_of_food):
+                self._insert_new_food()
 
         self.camera.reparent_to(self.scene)
-
-        #export creature data for betting
-        self.export_creatures()
 
         # Setup text boxes
         self.speed_textbox = TextBox("", (10, self.CAM_HEIGHT - 40))
@@ -409,10 +445,6 @@ class CreatureSim(PyGameBase):
         self.ui.add(self.creature_stats_textbox)
         self.ui.add(self.num_creatures_textbox)
         self.ui.add(self.population_stats_textbox)
-
-    def export_creatures(self):
-        with open('weight_data.json', 'w+') as f:
-            f.write(dumps([creature.nn.weights for creature in self.creatures]))
 
     def update_creature_positions(self):
         if not self.paused:
