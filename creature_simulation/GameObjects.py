@@ -264,10 +264,10 @@ class Creature(Polygon):
         self.total_food_eaten = 0
 
     def do_everyframe_action(self, time_dt, game_speed):
-        self.health -= time_dt/500.0 * game_speed
+        self.health -= time_dt/2000.0 * game_speed
         self.rotation = self.nn.get_outputs()[0] / 200
         self.speed = self.nn.get_outputs()[1] / 3
-        self.health -= (abs(self.speed*time_dt) / 8000.0) * game_speed
+        self.health -= (abs(self.speed*time_dt) / 500.0) * game_speed
 
         self.nn.set_inputs([self.food_seen, self.health / 100])
 

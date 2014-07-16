@@ -1,7 +1,7 @@
 from random import uniform
 from math import tanh
 
-WEIGHT_LIMIT = 1
+WEIGHT_LIMIT = 2.0
 
 def _random_weight():
     return uniform(-WEIGHT_LIMIT, WEIGHT_LIMIT)

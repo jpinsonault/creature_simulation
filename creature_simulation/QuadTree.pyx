@@ -132,7 +132,11 @@ class QuadTree(object):
             self.remove(scene_object)
 
     def remove(self, remove_object):
-        object_node = self.object_map[remove_object]
+        try:
+            object_node = self.object_map[remove_object]
+        except KeyError:
+            # If the object isn't in the quadtree, don't do anything
+            return
         # Remove from the node it's in
         object_node.remove_from_node(remove_object)
         # Make the object_map no longer point to the old node

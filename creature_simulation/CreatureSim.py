@@ -423,8 +423,6 @@ class CreatureSim(PyGameBase):
                 creature.rotate((self.dt * creature.rotation) * self.game_speed)
                 creature.move_forward((self.dt * creature.speed) * self.game_speed)
 
-        # self.scene.rotate(self.dt * .0005)
-
         self.scene.update_position()
 
     def speedup_game(self):
