@@ -1,5 +1,6 @@
 from Colors import *
 import pygame
+from time import time
 
 class TextBox(object):
     """Responsible for single line text boxes"""
@@ -56,6 +57,27 @@ class MultilineTextBox(TextBox):
             y += self.font.get_linesize()
 
 
+class Toast(object):
+    """A temporary string that goes away"""
+    def __init__(self, message, timeout=1.0, textbox=None):
+        super(Toast, self).__init__()
+        self.message = message
+        self.timeout = timeout
+
+        self.textbox = textbox
+
+        creation_time = None
+
+    def done(self):
+        """Returns true if the toast is done"""
+
+        # Initalize the creation_time if this is the first time done()
+        #   is called
+        if not self.creation_time:
+            self.creation_time = time()
+        return time() self.creation_time >= self.timeout
+        
+
 class UserInterface(object):
     """Handles drawing text on the screen each frame"""
     def __init__(self, screen):
@@ -64,8 +86,15 @@ class UserInterface(object):
 
         self.elements = []
 
+        self.toasts = []
+
     def draw(self):
         """Draws all the UI objects on the screen"""
+
+        toast = _next_toast()
+
+        if toast:
+            toast.textbox.draw()
 
         for element in self.elements:
             element.draw(self.screen)
@@ -75,3 +104,24 @@ class UserInterface(object):
 
     def remove(self, remove_object):
         self.elements.remove(remove_object)
+
+    def toast(self, message):
+        x = 400 # Find position based off of the screen and text size
+        y = 40
+        toast_textbox = TextBox(message, (x, y), size=15)
+
+        new_toast = Toast(message, toast_textbox)
+
+        self.toasts.append(new_toast)
+
+    def _next_toast(self):
+        if self.toasts:
+            toast = self.toasts[0]
+
+            if not toast.done():
+                return toast
+            else:
+                self.toasts.remove(toast)
+                return self._next_toast()
+
+        return None

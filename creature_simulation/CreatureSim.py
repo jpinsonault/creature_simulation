@@ -328,6 +328,8 @@ class CreatureSim(PyGameBase):
         y = self.foods
         export_items([x, y])
 
+        self.ui.toast("Saved Simulation")
+
     def load_state(self):
         def retrieve_items():
             with open('weight_data.pickle', 'r+') as f:
@@ -337,6 +339,8 @@ class CreatureSim(PyGameBase):
         except:
             return
         self.reload(creatures, foods)
+
+        self.ui.toast("Loaded Simulation")
 
     def toggle_follow_creature(self):
         if self.selected_creature:
