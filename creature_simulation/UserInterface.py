@@ -66,7 +66,7 @@ class Toast(object):
 
         self.textbox = textbox
 
-        creation_time = None
+        self.creation_time = None
 
     def done(self):
         """Returns true if the toast is done"""
@@ -75,7 +75,7 @@ class Toast(object):
         #   is called
         if not self.creation_time:
             self.creation_time = time()
-        return time() self.creation_time >= self.timeout
+        return time() - self.creation_time >= self.timeout
         
 
 class UserInterface(object):
@@ -91,10 +91,10 @@ class UserInterface(object):
     def draw(self):
         """Draws all the UI objects on the screen"""
 
-        toast = _next_toast()
+        toast = self._next_toast()
 
         if toast:
-            toast.textbox.draw()
+            toast.textbox.draw(self.screen)
 
         for element in self.elements:
             element.draw(self.screen)
@@ -106,11 +106,11 @@ class UserInterface(object):
         self.elements.remove(remove_object)
 
     def toast(self, message):
-        x = 400 # Find position based off of the screen and text size
+        x = self.screen.get_width() / 2
         y = 40
-        toast_textbox = TextBox(message, (x, y), size=15)
+        new_toast = Toast(message, textbox=toast_textbox)
 
-        new_toast = Toast(message, toast_textbox)
+        toast_textbox = TextBox(message, (x, y), size=30)
 
         self.toasts.append(new_toast)
 
