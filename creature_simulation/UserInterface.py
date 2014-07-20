@@ -108,9 +108,9 @@ class UserInterface(object):
     def toast(self, message):
         x = self.screen.get_width() / 2
         y = 40
-        new_toast = Toast(message, textbox=toast_textbox)
-
         toast_textbox = TextBox(message, (x, y), size=30)
+
+        new_toast = Toast(message, textbox=toast_textbox)
 
         self.toasts.append(new_toast)
 
