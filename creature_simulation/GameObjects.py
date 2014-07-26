@@ -16,15 +16,25 @@ from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
 from PygameUtils import dot_2d
 
+from math import pi
+two_pi = 2*pi
+
+
 
 from NeuralNetworks.NeuralNetwork import NeuralNetwork
 from Colors import *
 
 # utility functions
 _clamp = lambda a, v, b: max(a, min(b, v))              # clamp v between a and b
-_perp = lambda (x, y): [-y, x]                          # perpendicular
+# _perp = lambda (x, y): [-y, x]                          # perpendicular
+def _perp(vector):
+    x, y = vector
+    return [-y, x]
 _prod = lambda X: reduce(mul, X)                        # product
-_mag = lambda (x, y): sqrt(x * x + y * y)               # magnitude, or length
+# _mag = lambda (x, y): sqrt(x * x + y * y)               # magnitude, or length
+def _mag(vector):
+    x, y = vector
+    return sqrt(x * x + y * y)
 _normalize = lambda V: [i / _mag(V) for i in V]         # normalize a vector
 # def _normalize(point):
 #     magnitude = _mag(point)
@@ -245,7 +255,7 @@ class Creature(Polygon):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
 
         self.health = self.MAX_HEALTH
-        self.nn = NeuralNetwork(2, 5, 2)
+        self.nn = NeuralNetwork(5, 12, 5)
         if not nn_weights:
             self.nn.initialize_random_network()
         else:
@@ -258,18 +268,26 @@ class Creature(Polygon):
         self.vision_cone.reparent_to(self)
 
         self.speed = 0
-        self.rotation = 0
+        self.rotation_speed = 0
 
         self.food_seen = 0
         self.total_food_eaten = 0
 
     def do_everyframe_action(self, time_dt, game_speed):
         self.health -= time_dt/2000.0 * game_speed
-        self.rotation = self.nn.get_outputs()[0] / 200
+        self.rotation_speed = self.nn.get_outputs()[0] / 200
         self.speed = self.nn.get_outputs()[1] / 3
         self.health -= (abs(self.speed*time_dt) / 500.0) * game_speed
 
-        self.nn.set_inputs([self.food_seen, self.health / 100])
+        outputs = self.nn.get_outputs()
+
+        self.nn.set_inputs([
+            self.food_seen / 2.0,
+            self.health / 100,
+            outputs[2] / 2.0,
+            outputs[3] / 2.0,
+            outputs[4] / 2.0,
+        ])
 
         if self.health <= 0:
             self.health = 0
@@ -281,7 +299,7 @@ class Creature(Polygon):
         """
         stats = ["Creature Stats"]
         stats.append("Speed: {:.4f}".format(self.speed))
-        stats.append("Rotation: {:.4f}".format(self.rotation))
+        stats.append("Rotation: {:.4f}".format(self.rotation_speed))
         stats.append("Food seen: {}".format(self.food_seen))
         stats.append("Health: {:.2f}".format(self.health))
         stats.append("Food Eaten: {}".format(self.total_food_eaten))

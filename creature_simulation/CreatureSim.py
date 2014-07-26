@@ -71,7 +71,7 @@ class CreatureSim(PyGameBase):
         self.infoObject = pygame.display.Info()
         self.CAM_HEIGHT = self.infoObject.current_h - 80
         self.CAM_WIDTH = self.infoObject.current_w
-        self.num_of_creatures = 100
+        self.num_of_creatures = 140
         self.num_of_food = 100
         self.game_bounds = (-5000, 5000)
 
@@ -80,6 +80,8 @@ class CreatureSim(PyGameBase):
         self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=0, y=0, zoom=1.0)
         self.scene = Background()
         self.screen = pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
+
+        self.fullscreen = False
 
         # QuadTree for collision detection
         self.quadtree = QuadTree(
@@ -237,9 +239,10 @@ class CreatureSim(PyGameBase):
             # Get rough idea of what things could be colliding
             first_pass = self.quadtree.get_objects_at_bounds(vision_cone.get_bounds())
 
-            for scene_object in first_pass:
-                vision_cone.check_collision(scene_object)
-                creature.check_collision(scene_object)
+            if first_pass:
+                for scene_object in first_pass:
+                    vision_cone.check_collision(scene_object)
+                    creature.check_collision(scene_object)
 
         self.scene.finish_collisions()
 
@@ -282,6 +285,9 @@ class CreatureSim(PyGameBase):
             if event.key == K_t:
                 self.draw_quadtree = not self.draw_quadtree
 
+            if event.key == K_b:
+                self.select_best()
+
             if event.key == K_F5:
                 self.save_state()
 
@@ -292,9 +298,7 @@ class CreatureSim(PyGameBase):
                 self.paused = not self.paused
 
             if event.key == K_F11:
-                pygame.display.toggle_fullscreen()
-                self.camera.width = self.CAM_WIDTH
-                self.camera.height = self.CAM_HEIGHT
+                self.toggle_fullscreen()
 
             if event.key == K_f:
                 self.toggle_follow_creature()
@@ -317,6 +321,14 @@ class CreatureSim(PyGameBase):
         ########################
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_click()
+
+    def toggle_fullscreen(self):
+        self.fullscreen = not self.fullscreen
+
+        if self.fullscreen:
+            pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT), pygame.FULLSCREEN)
+        else:
+            pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
 
     def save_state(self):
         def export_items(items):
@@ -356,9 +368,19 @@ class CreatureSim(PyGameBase):
             if self.follow_creature:
                 self.detach_camera_from(self.selected_creature)
 
-            self.unselect_creature()
-
             self.follow_creature = False
+
+    def select_best(self):
+        self.unselect_creature()
+        self.unfollow_creature()
+
+        best = self._find_best()
+
+        self.select_creature(best)
+        self.toggle_follow_creature()
+
+    def _find_best(self):
+        return max(self.creatures, key=lambda c: c.total_food_eaten)
 
     def select_creature(self, creature):
         self.selected_creature = creature
@@ -372,6 +394,8 @@ class CreatureSim(PyGameBase):
             self.selected_creature.vision_cone.visible = False
 
             self.selected_creature = None
+
+            self.unfollow_creature()
 
     def attach_camera_to(self, scene_object):
         self.camera.set_position([0, 0])
@@ -459,7 +483,7 @@ class CreatureSim(PyGameBase):
                 network = creature.nn
                 network.compute_network()
 
-                creature.rotate((self.dt * creature.rotation) * self.game_speed)
+                creature.rotate((self.dt * creature.rotation_speed) * self.game_speed)
                 creature.move_forward((self.dt * creature.speed) * self.game_speed)
 
         self.scene.update_position()

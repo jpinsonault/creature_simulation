@@ -8,6 +8,8 @@ from collections import namedtuple
 
 Event = namedtuple('Event', 'function, parameters')
 
+two_pi = 2*pi
+
 class GraphNode(object):
     """
         A node in the scene graph.
@@ -119,7 +121,6 @@ class GraphNode(object):
 
     def rotate(self, angle_change):
         """Rotates object by angle_change radians"""
-        two_pi = 2*pi
         self.heading += angle_change
         if self.heading > two_pi:
             self.heading -= two_pi
