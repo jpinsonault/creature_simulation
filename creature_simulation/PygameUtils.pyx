@@ -52,96 +52,56 @@ def rotate_shape(float cos_radians, float sin_radians, shape, pivot, float radia
 #######################################
 
 # utility functions
-cdef double dot_2d(double [:] first, double [:] second):
-    """Returns the dot product of two vectors"""
-
-    return first[0] * second[0] + first[1] * second[1]
-
-
-# _perp = lambda (x, y): [-y, x]                          # perpendicular
-cdef double* _perp(double [:] vector):
-    cdef double[2] perp_vector
-    perp_vector[0] = -vector[0]
-    perp_vector[1] = vector[1]
-
-    return perp_vector
-
-
-# _mag = lambda (x, y): sqrt(x * x + y * y)               # magnitude, or length
-cdef _mag(double [:] vector):
-    cdef double x = vector[0]
-    cdef double y = vector[1]
-
-    return sqrt(x * x + y * y)
-
 # _normalize = lambda V: [i / _mag(V) for i in V]         # normalize a vector
-cdef double* _normalize(double [:] vector):
-    cdef double[2] normalized
-    cdef double magnitude = _mag(vector)
-    normalized[0] = vector[0] / magnitude
-    normalized[1] = vector[1] / magnitude
 
-    return normalized
+cdef _normalize(point, double [2] output):
+    cdef double x = point[0]
+    cdef double y = point[1]
+    cdef double mag = sqrt(x * x + y * y)
+
+    output[0] = x / mag
+    output[1] = y / mag
 
 # _intersect = lambda A, B: (A[1] > B[0] and B[1] > A[0]) # intersection test
-cdef inline bool _intersect(double [:] A, double [:] B):
-    return (A[1] > B[0] and B[1] > A[0])
-cdef inline double _min(double first, double second):
+
+cdef inline bool _intersect(double [2] first, double [2] second):
+    return (first[1] > second[0] and second[1] > first[0])
+
+
+cdef inline double min_double(double first, double second):
     if first < second:
         return first
     else:
         return second
 
 
-cdef inline double _max(double first, double second):
+cdef inline double max_double(double first, double second):
     if first > second:
         return first
     else:
         return second
 
 
-cdef inline double _min_vector(double [:] vector):
-    cdef int index
-
-    cdef double min_found = vector[0]
-
-    for index in range(vector.shape[0]):
-        min_found = _min(min_found, vector[index])
-
-    return min_found
-
-
-cdef inline double _max_vector(double [:] vector):
-    cdef int index
-
-    cdef double max_found = vector[0]
-
-    for index in range(vector.shape[0]):
-        max_found = _max(max_found, vector[index])
-
-    return max_found
-
-
-cdef _project(double [:,:] points, double [:] axis, double* output):
+cdef _project(points, double [2] axis, double[2] output):
     """project self onto axis"""
-    cdef int index
+    # points = self.absolute_shape
+    # projected_points = [dot_2d(point, axis) for point in points]
 
-    cdef double [:] point
-    cdef double projected_point
+    cdef double x
+    cdef double y
     cdef double min_found
     cdef double max_found
+    cdef double dot
 
-    projected_point = dot_2d(points[0], axis)
+    for point in points:
+        x = point[0]
+        y = point[1]
 
-    min_found = projected_point
-    max_found = projected_point
+        dot = x * axis[0] + y * axis[1]
 
-    for index in range(1, points.shape[0]):
-        projected_point = dot_2d(points[index], axis)
-        min_found = _min(min_found, projected_point)
-        max_found = _max(max_found, projected_point)
+        min_found = min_double(min_found, dot)
+        max_found = max_double(max_found, dot)
 
-    # return the span of the projection
     output[0] = min_found
     output[1] = max_found
 
@@ -182,69 +142,30 @@ class PolygonCython(object):
         self.calc_shape_rotation()
         other.calc_shape_rotation()
 
-        cdef int self_num_points = self.num_points
-        cdef int other_num_points = other.num_points
-        cdef double[:,:] self_points = np.array(self.absolute_shape)
-        cdef double[:,:] other_points = np.array(other.absolute_shape)
-
-        cdef double [:] point
-        cdef double [:] next_point
-        cdef double [2] edge
         cdef double [2] axis
+        cdef double [2] normalized
+
         cdef double [2] self_projection
         cdef double [2] other_projection
-        cdef int num_points
 
-        cdef double magnitude
 
-        cdef int index
-        for index in range(self_num_points + other_num_points):
-            # Make the edge
-            if index < self_num_points:
-                point = self_points[index]
-                num_points = self_num_points
-                next_point = self_points[(index + 1) % num_points]
-            else:
-                point = other_points[index - self_num_points]
-                num_points = other_num_points
-                next_point = other_points[((index - self_num_points) + 1) % num_points]
+        for edge in chain(self._make_edges(), other._make_edges()):
+            _normalize(edge, normalized)
+            axis[0] = -normalized[0]
+            axis[1] = normalized[1]
 
-            edge[0] = point[0] - next_point[0]
-            edge[1] = point[1] - next_point[1]
+            # the separating axis is the line perpendicular to the edge
+            _project(self.absolute_shape, axis, self_projection)
+            _project(other.absolute_shape, axis, other_projection)
 
-            # Normalize
-            magnitude = _mag(edge)
-            edge[0] /= magnitude
-            edge[1] /= magnitude
-
-            # Get perpendicular axis
-            axis[:] = edge
-            axis[0] *= -1
-
-            # Project both shapes onto axis
-            _project(self_points, axis, self_projection)
-            _project(other_points, axis, other_projection)
-
+            # if self and other do not intersect on any axis, they do not
+            # intersect in space
             if not _intersect(self_projection, other_projection):
                 return False
-
-        return True
-
-        # for edge in chain(self._make_edges(), other._make_edges()):
-        #     edge = _normalize(edge)
-        #     # the separating axis is the line perpendicular to the edge
-        #     axis = _perp(edge)
-        #     self_projection = self.project(axis)
-        #     other_projection = other.project(axis)
-        #     # if self and other do not intersect on any axis, they do not
-        #     # intersect in space
-        #     if not _intersect(self_projection, other_projection):
-        #         return False
             # find the overlapping portion of the projections
             # projection = self_projection[1] - other_projection[0]
             # projections.append((axis[0] * projection, axis[1] * projection))
-        # return projections
-        # return True
+        return True
 
     def _make_edges(self):
         points = self.absolute_shape
@@ -253,10 +174,3 @@ class PolygonCython(object):
             next_point = points[(i + 1) % self.num_points] # x, y of next point in series
             # yield [point, next_point]
             yield [point[0] - next_point[0], point[1] - next_point[1]]
-
-    def project(self, axis):
-        """project self onto axis"""
-        points = self.absolute_shape
-        projected_points = [dot_2d(point, axis) for point in points]
-        # return the span of the projection
-        return min(projected_points), max(projected_points)
