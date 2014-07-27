@@ -93,14 +93,21 @@ cdef _project(points, double [2] axis, double[2] output):
     cdef double max_found
     cdef double dot
 
+    cdef bool first_run = True
+
     for point in points:
         x = point[0]
         y = point[1]
-
+            
         dot = x * axis[0] + y * axis[1]
 
-        min_found = min_double(min_found, dot)
-        max_found = max_double(max_found, dot)
+        if first_run:
+            min_found = dot
+            max_found = dot
+            first_run = False
+        else:
+            min_found = min_double(min_found, dot)
+            max_found = max_double(max_found, dot)
 
     output[0] = min_found
     output[1] = max_found
@@ -151,10 +158,10 @@ class PolygonCython(object):
 
         for edge in chain(self._make_edges(), other._make_edges()):
             _normalize(edge, normalized)
-            axis[0] = -normalized[0]
-            axis[1] = normalized[1]
-
             # the separating axis is the line perpendicular to the edge
+            axis[0] = -normalized[1]
+            axis[1] = normalized[0]
+
             _project(self.absolute_shape, axis, self_projection)
             _project(other.absolute_shape, axis, other_projection)
 
