@@ -10,11 +10,10 @@ from operator import add
 from math import cos
 from math import sin
 from math import sqrt
-from itertools import chain
 from pprint import pprint
 from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
-from PygameUtils import dot_2d
+from PygameUtils import PolygonCython
 
 from math import pi
 two_pi = 2*pi
@@ -23,29 +22,6 @@ two_pi = 2*pi
 
 from NeuralNetworks.NeuralNetwork import NeuralNetwork
 from Colors import *
-
-# utility functions
-_clamp = lambda a, v, b: max(a, min(b, v))              # clamp v between a and b
-# _perp = lambda (x, y): [-y, x]                          # perpendicular
-def _perp(vector):
-    x, y = vector
-    return [-y, x]
-_prod = lambda X: reduce(mul, X)                        # product
-# _mag = lambda (x, y): sqrt(x * x + y * y)               # magnitude, or length
-def _mag(vector):
-    x, y = vector
-    return sqrt(x * x + y * y)
-_normalize = lambda V: [i / _mag(V) for i in V]         # normalize a vector
-# def _normalize(point):
-#     magnitude = _mag(point)
-#     if magnitude == 0.0:
-#         return point
-#     else:
-#         return [i / magnitude for i in point] P
-
-_intersect = lambda A, B: (A[1] > B[0] and B[1] > A[0]) # intersection test
-_unzip = lambda zipped: zip(*zipped)                    # unzip a list of tuples
-
 
 class Background(GraphNode):
     """Probably be used for displaying a background image tile at some point"""
@@ -56,7 +32,7 @@ class Background(GraphNode):
         pass
 
 
-class Polygon(GraphNode):
+class Polygon(GraphNode, PolygonCython):
     """docstring for Polygon"""
     def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
         self.shape = shape
@@ -154,67 +130,6 @@ class Polygon(GraphNode):
             p1x, p1y = p2x, p2y
 
         return inside
-
-    def collide_bounds(self, other):
-        a_x, a_y, a_w, a_h = self.get_bounds()
-        b_x, b_y, b_w, b_h = other.get_bounds()
-
-        a_w = a_w / 2
-        a_h = a_h / 2
-
-        a_x = a_x + a_w
-        a_y = a_y + a_h
-
-        return ((abs(a_x - b_x) < (a_w + b_w)) and
-               (abs(a_y - b_y) < (a_h + b_h)))
-
-    def _make_edges(self):
-        points = self.absolute_shape
-
-        for i, point in enumerate(points):
-            next_point = points[(i + 1) % self.num_points] # x, y of next point in series
-            # yield [point, next_point]
-            yield [point[0] - next_point[0], point[1] - next_point[1]]
-
-    def project(self, axis):
-        """project self onto axis"""
-        points = self.absolute_shape
-        projected_points = [dot_2d(point, axis) for point in points]
-        # return the span of the projection
-        return min(projected_points), max(projected_points)
-
-    def collide_poly(self, other):
-        """
-        test if other polygon collides with self using seperating axis theorem
-        if collision, return projections
-
-        arguments:
-            other -- a polygon object
-
-        returns:
-            an array of projections
-        """
-        # a projection is a vector representing the span of a polygon projected
-        # onto an axis
-        projections = []
-
-        self.calc_shape_rotation()
-        other.calc_shape_rotation()
-
-        for edge in chain(self._make_edges(), other._make_edges()):
-            edge = _normalize(edge)
-            # the separating axis is the line perpendicular to the edge
-            axis = _perp(edge)
-            self_projection = self.project(axis)
-            other_projection = other.project(axis)
-            # if self and other do not intersect on any axis, they do not
-            # intersect in space
-            if not _intersect(self_projection, other_projection):
-                return False
-            # find the overlapping portion of the projections
-            projection = self_projection[1] - other_projection[0]
-            projections.append((axis[0] * projection, axis[1] * projection))
-        return projections
 
     def check_collision(self, other):
         """
