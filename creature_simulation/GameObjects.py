@@ -10,6 +10,7 @@ from operator import add
 from math import cos
 from math import sin
 from math import sqrt
+from time import time
 from pprint import pprint
 from PygameUtils import rotate_around
 from PygameUtils import rotate_shape
@@ -136,19 +137,10 @@ class Polygon(GraphNode, PolygonCython):
             Does a rough check with the bounding boxes, and then
             does a poly-on-poly check
         """
-        # if isinstance(self, VisionCone) and self.parent.selected and other == self.parent:
-        #     if not self.collide_bounds(other) or self.collide_poly(other):
-        #         import pdb; pdb.set_trace()
-        #         self.collide_bounds(other)
-
         if self.collide_bounds(other):
             if self.collide_poly(other):
                 self.on_collide(other)
                 return True
-
-        # if self.collide_poly(other):
-        #     self.on_collide(other)
-        #     return True
 
         return False
         
@@ -165,6 +157,7 @@ class Creature(Polygon):
     BASE_SHAPE = [[10, 0], [0, -10], [-5, -5], [-5, 5], [0, 10]]
 
     MAX_HEALTH = 100
+    MAX_LIVESPAN = 1000 * 60 * 3
 
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE, nn_weights=None):
         super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
@@ -185,26 +178,32 @@ class Creature(Polygon):
         self.speed = 0
         self.rotation_speed = 0
 
+        self.age = 0
+
         self.food_seen = 0
         self.total_food_eaten = 0
 
     def do_everyframe_action(self, time_dt, game_speed):
         self.health -= time_dt/2000.0 * game_speed
         self.rotation_speed = self.nn.get_outputs()[0] / 200
-        self.speed = self.nn.get_outputs()[1] / 3
+        self.speed = self.nn.get_outputs()[1] / 6
         self.health -= (abs(self.speed*time_dt) / 500.0) * game_speed
+        self.age += time_dt * game_speed
 
         outputs = self.nn.get_outputs()
 
         self.nn.set_inputs([
             self.food_seen / 2.0,
             self.health / 100,
-            outputs[2] / 2.0,
-            outputs[3] / 2.0,
-            outputs[4] / 2.0,
+            outputs[2] / 10.0,
+            outputs[3] / 10.0,
+            outputs[4] / 10.0,
         ])
 
         if self.health <= 0:
+            self.health = 0
+
+        if self.age > self.MAX_LIVESPAN:
             self.health = 0
 
     def get_stats(self):
@@ -213,6 +212,7 @@ class Creature(Polygon):
             Used to display info on screen
         """
         stats = ["Creature Stats"]
+        stats.append("Time Till Death: {:.1f}".format((self.MAX_LIVESPAN - self.age) / 1000))
         stats.append("Speed: {:.4f}".format(self.speed))
         stats.append("Rotation: {:.4f}".format(self.rotation_speed))
         stats.append("Food seen: {}".format(self.food_seen))

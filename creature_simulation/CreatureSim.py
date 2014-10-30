@@ -71,7 +71,7 @@ class CreatureSim(PyGameBase):
         self.infoObject = pygame.display.Info()
         self.CAM_HEIGHT = self.infoObject.current_h - 80
         self.CAM_WIDTH = self.infoObject.current_w
-        self.num_of_creatures = 140
+        self.num_of_creatures = 180
         self.num_of_food = 100
         self.game_bounds = (-5000, 5000)
 
