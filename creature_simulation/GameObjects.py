@@ -43,8 +43,8 @@ class Polygon(GraphNode, PolygonCython):
 
         self.num_points = len(self.shape)
         # For caching shape coords
-        self.absolute_shape = [[0.0, 0.0] for x in xrange(self.num_points)]
-        self.onscreen_shape_coords = [[0.0, 0.0] for x in xrange(self.num_points)]
+        self.absolute_shape = [[0.0, 0.0] for x in range(self.num_points)]
+        self.onscreen_shape_coords = [[0.0, 0.0] for x in range(self.num_points)]
         self.absolute_position = [0, 0]
 
         # Whether or not the calculation needs to be done

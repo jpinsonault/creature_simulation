@@ -34,7 +34,7 @@ class StatsTracker(object):
 		return self.get_stats_strings()
 
 	def _clear_stats(self):
-		for key in self.stats.iterkeys():
+		for key in self.stats.keys():
 			if key != "all_time_best":
 				self.stats[key] = 0.0
 
@@ -42,4 +42,4 @@ class StatsTracker(object):
 
 	def get_stats_strings(self):
 		"""Returns a list of strings for use with the MultiLineTextBox object"""
-		return ["{}: {}".format(name, value) for name, value in self.stats.iteritems()]
+		return ["{}: {}".format(name, value) for name, value in self.stats.items()]

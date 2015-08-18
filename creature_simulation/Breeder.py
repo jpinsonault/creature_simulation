@@ -35,7 +35,7 @@ class Breeder(object):
     def _tournament(self, creatures):
         """Finds the best of 'size' creatures chosen at random"""
         size = self.tournament_size
-        return max((random.choice(creatures) for _ in xrange(size)), key=lambda c: c.total_food_eaten)
+        return max((random.choice(creatures) for _ in range(size)), key=lambda c: c.total_food_eaten)
 
     def _recombine_weights(self, first, second):
         first_weights = first.nn.get_network()
@@ -53,7 +53,7 @@ class Breeder(object):
 
         mutation_count = 0
 
-        for index in xrange(len(weights)):
+        for index in range(len(weights)):
             if randint(0, 1000) < chance:
                 mutated_weights[index] = _random_weight()
                 mutation_count += 1
