@@ -91,7 +91,7 @@ class CreatureSim(PyGameBase):
                 self.WORLD_WIDTH,
                 self.WORLD_HEIGHT),
             depth=9)
-
+ 
         self.ui = UserInterface(self.screen)
 
         self.dt = 0
