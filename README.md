@@ -11,3 +11,5 @@ or if you're on windows and using mingw:
 
 `python setup.py build_ext --inplace --compiler=mingw32`
 
+When developing, you can just run `python run-compile.py`, which will compile and then run creature_sim.py
+
