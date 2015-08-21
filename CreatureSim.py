@@ -332,7 +332,7 @@ class CreatureSim(PyGameBase):
 
     def save_state(self):
         def export_items(items):
-            with open('weight_data.pickle', 'w+') as f:
+            with open('weight_data.pickle', 'wb+') as f:
                 pickle.dump(items, f)
         # dump the creatures and food stuffs
         # let's get all the creatures first
@@ -344,7 +344,7 @@ class CreatureSim(PyGameBase):
 
     def load_state(self):
         def retrieve_items():
-            with open('weight_data.pickle', 'r+') as f:
+            with open('weight_data.pickle', 'rb+') as f:
                 return pickle.load(f)
         try:
             creatures, foods = retrieve_items()

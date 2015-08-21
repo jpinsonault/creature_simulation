@@ -21,7 +21,7 @@ two_pi = 2*pi
 
 
 
-from NeuralNetworks.NeuralNetwork import NeuralNetwork
+from NeuralNetwork import NeuralNetwork
 from Colors import *
 
 class Background(GraphNode):

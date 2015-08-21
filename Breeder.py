@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(0, '../')
-from NeuralNetworks.NeuralNetwork import _random_weight
+from NeuralNetwork import _random_weight
 import random
 from random import randint
 
