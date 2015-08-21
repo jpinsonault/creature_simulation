@@ -91,8 +91,8 @@ class GraphNode(object):
             raise Exception("Child must subclass GraphNode")
         if child in self.children:
             self.children.remove(child)
-        for a_child in self.children:
-            a_child.remove_child(child)
+        for child_node in self.children:
+            child_node.remove_child(child)
 
     def update_position(self):
         """Updates the absolute_positions of this object and it's children"""

@@ -1,9 +1,0 @@
-TODO
-====
-
-Make Terrain
-
-Insert objects into the world
-Make them move
-Enable collision detection
-

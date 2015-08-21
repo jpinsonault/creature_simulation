@@ -6,8 +6,12 @@ import numpy
 
 setup(
     cmdclass={'build_ext': build_ext},
-    ext_modules=[Extension("MultiNN_c", ["MultiNN_c.pyx"]),
-    			 Extension("NeuralNetwork", ["NeuralNetworkCython.pyx"], libraries=["m"])],
+    ext_modules=[
+    	Extension("PygameUtils", ["PygameUtils.pyx"]),
+    	# Extension("GraphNode", ["GraphNode.py"]),
+    	# Extension("GameObjects", ["GameObjects.py"]),
+    	Extension("QuadTree", ["QuadTree.pyx"])
+    ],
     include_dirs=[numpy.get_include()]
 )
 

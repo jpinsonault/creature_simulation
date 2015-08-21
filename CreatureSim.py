@@ -70,7 +70,7 @@ class CreatureSim(PyGameBase):
         super(CreatureSim, self).__init__()
         self.infoObject = pygame.display.Info()
         self.CAM_HEIGHT = self.infoObject.current_h - 80
-        self.CAM_WIDTH = self.infoObject.current_w
+        self.CAM_WIDTH = int(self.infoObject.current_w/2-100)
         self.num_of_creatures = 180
         self.num_of_food = 100
         self.game_bounds = (-5000, 5000)
@@ -91,7 +91,7 @@ class CreatureSim(PyGameBase):
                 self.WORLD_WIDTH,
                 self.WORLD_HEIGHT),
             depth=9)
-
+ 
         self.ui = UserInterface(self.screen)
 
         self.dt = 0
@@ -332,7 +332,7 @@ class CreatureSim(PyGameBase):
 
     def save_state(self):
         def export_items(items):
-            with open('weight_data.pickle', 'w+') as f:
+            with open('weight_data.pickle', 'wb+') as f:
                 pickle.dump(items, f)
         # dump the creatures and food stuffs
         # let's get all the creatures first
@@ -344,7 +344,7 @@ class CreatureSim(PyGameBase):
 
     def load_state(self):
         def retrieve_items():
-            with open('weight_data.pickle', 'r+') as f:
+            with open('weight_data.pickle', 'rb+') as f:
                 return pickle.load(f)
         try:
             creatures, foods = retrieve_items()

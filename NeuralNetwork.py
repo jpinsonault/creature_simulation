@@ -17,23 +17,23 @@ class NeuralNetwork(object):
         self.num_hidden = num_hidden
         self.num_outputs = num_outputs
         self.num_weights = (num_inputs * num_hidden) + (num_hidden * num_outputs) + num_hidden + num_outputs
-        self.weights = [0 for x in xrange(self.num_weights)]
+        self.weights = [0 for x in range(self.num_weights)]
         # self.weights = numpy.zeros((num_networks, self.num_weights))
-        self.inputs = [0 for x in xrange(num_inputs)]
+        self.inputs = [0 for x in range(num_inputs)]
         # self.inputs = numpy.zeros((num_networks, num_inputs))
-        self.outputs = [0 for x in xrange(num_outputs)]
+        self.outputs = [0 for x in range(num_outputs)]
         # self.outputs = numpy.zeros((num_networks, num_outputs))
 
         # Buffers for calculations
         # self.hidden_sums = numpy.zeros((num_networks, num_hidden))
-        self.hidden_sums = [0 for x in xrange(num_hidden)]
+        self.hidden_sums = [0 for x in range(num_hidden)]
         # self.hidden_sums = numpy.zeros((num_networks, num_hidden))
         # self.hidden_outputs = numpy.zeros((num_networks, num_hidden))
-        self.hidden_outputs = [0 for x in xrange(num_hidden)]
+        self.hidden_outputs = [0 for x in range(num_hidden)]
 
     def initialize_random_network(self):
         # self.weights = numpy.random.rand(self.num_networks, self.num_weights)
-        self.weights = [_random_weight() for x in xrange(self.num_weights)]
+        self.weights = [_random_weight() for x in range(self.num_weights)]
         # self.weights = (self.weights - .5) * (limit * 2)
 
     def set_inputs(self, inputs):
