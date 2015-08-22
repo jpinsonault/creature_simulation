@@ -27,8 +27,6 @@ class GraphNode(object):
         # Will draw to the screen if visible
         self.visible = True
 
-        # blist is a acts like a list but is implemented as a B+ tree
-        # for fast insertions and deletions
         self.children = []
 
         # Hold values for the absolute position

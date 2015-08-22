@@ -1,15 +1,8 @@
-import os
 import pygame
 import sys
-import random
 import pickle
 from random import randrange
-from random import randint
-from random import uniform
-from pprint import pprint
-from pygame import draw
 from pygame.locals import *
-from collections import deque
 from collections import namedtuple
 
 # User made libraries
@@ -23,6 +16,8 @@ from UserInterface import UserInterface
 from UserInterface import TextBox
 from UserInterface import MultilineTextBox
 from StatsTracker import StatsTracker
+from SceneGraph import SceneGraph
+from SceneGraph import OldStyleTransformer
 
 from Colors import *
 
@@ -116,6 +111,9 @@ class CreatureSim(PyGameBase):
 
         self.population_stats = StatsTracker()
 
+        self.spinner = Background()
+
+
     def run(self):
         self.load()
         self.setup_keys()
@@ -130,6 +128,8 @@ class CreatureSim(PyGameBase):
             self.handle_key_presses()
 
             self.update_creature_positions()
+            self.scene_graph.update()
+
             self.quadtree.update_objects(self.creatures)
 
             self.handle_collisions()
@@ -192,9 +192,8 @@ class CreatureSim(PyGameBase):
         return new_creature
 
     def _insert_creature(self, creature):
-        self.creatures.append(creature)
+        self.entities.append(creature)
 
-        creature.reparent_to(self.scene)
         creature.calc_absolute_position()
 
         self.quadtree.insert(creature)
@@ -212,8 +211,7 @@ class CreatureSim(PyGameBase):
 
     def _insert_food(self, food):
         self.foods.append(food)
-
-        food.reparent_to(self.scene)
+        self.scene_graph.add_to_parent(food, self.spinner, transformer=OldStyleTransformer)
         food.calc_absolute_position()
 
         self.quadtree.insert(food)
@@ -233,15 +231,17 @@ class CreatureSim(PyGameBase):
 
     def handle_collisions(self):
         # Handle collisions for each creature's vision cone
-        for creature in self.creatures:
-            vision_cone = creature.vision_cone
+        for creature in (entity for entity
+                         in self.entities
+                         if issubclass(type(entity), Creature)):
+            # vision_cone = creature.vision_cone
 
             # Get rough idea of what things could be colliding
-            first_pass = self.quadtree.get_objects_at_bounds(vision_cone.get_bounds())
+            first_pass = self.quadtree.get_objects_at_bounds(creature.get_bounds())
 
             if first_pass:
                 for scene_object in first_pass:
-                    vision_cone.check_collision(scene_object)
+                    # vision_cone.check_collision(scene_object)
                     creature.check_collision(scene_object)
 
         self.scene.finish_collisions()
@@ -448,6 +448,9 @@ class CreatureSim(PyGameBase):
         """Sets up various game world objects"""
         self.creatures = []
         self.foods = []
+        self.entities = []
+        self.scene_graph = SceneGraph()
+        self.scene_graph.add(self.spinner)
 
         if creatures and foods:
             for creature in creatures:
@@ -486,8 +489,6 @@ class CreatureSim(PyGameBase):
                 creature.rotate((self.dt * creature.rotation_speed) * self.game_speed)
                 creature.move_forward((self.dt * creature.speed) * self.game_speed)
 
-        self.scene.update_position()
-
     def speedup_game(self):
         self.game_speed = min(self.MAX_GAME_SPEED, self.game_speed + self.GAME_SPEED_INCREMENT)
 
@@ -522,7 +523,8 @@ class CreatureSim(PyGameBase):
         else:
             self.creature_stats_textbox.clear()
 
-        stats = self.population_stats.update(self.creatures)
+        creatures = [entity for entity in self.entities if issubclass(type(entity), Creature)]
+        stats = self.population_stats.update(creatures)
         self.population_stats_textbox.set(stats)
 
         ui.draw()
