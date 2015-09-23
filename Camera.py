@@ -11,7 +11,7 @@ class Camera(GraphNode):
     MAX_ZOOM = 40.0
 
     def __init__(self, width, height, x=0, y=0, zoom = 1.0, zoom_speed = 0.001):
-        super(Camera, self).__init__(x=x, y=y)
+        super().__init__(x=x, y=y)
 
         self.width = width
         self.height = height

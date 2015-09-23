@@ -6,7 +6,7 @@ from pprint import pprint
 
 class QuadTree(object):
     def __init__(self, bounds, int depth=15, int max_objects=4, object_map = None, parent=None):
-        super(QuadTree, self).__init__()
+        super().__init__()
         self.bounds = bounds
         self.depth = depth
         self.max_objects = max_objects

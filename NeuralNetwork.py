@@ -12,7 +12,7 @@ class NeuralNetwork(object):
     '''
 
     def __init__(self, num_inputs, num_hidden, num_outputs):
-        super(NeuralNetwork, self).__init__()
+        super().__init__()
         self.num_inputs = num_inputs
         self.num_hidden = num_hidden
         self.num_outputs = num_outputs

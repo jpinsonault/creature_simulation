@@ -4,7 +4,7 @@ from collections import defaultdict
 class StatsTracker(object):
 	"""Keeps track of the population statistics"""
 	def __init__(self):
-		super(StatsTracker, self).__init__()
+		super().__init__()
 
 		self.distribution = defaultdict(int)
 

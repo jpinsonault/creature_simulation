@@ -36,7 +36,7 @@ class PyGameBase(object):
     }
 
     def __init__(self):
-        super(PyGameBase, self).__init__()
+        super().__init__()
         self.clock = pygame.time.Clock()
 
         pygame.init()
@@ -62,7 +62,7 @@ class CreatureSim(PyGameBase):
     SELECTED_COLOR = GREEN
 
     def __init__(self):
-        super(CreatureSim, self).__init__()
+        super().__init__()
         self.infoObject = pygame.display.Info()
         self.CAM_HEIGHT = self.infoObject.current_h - 80
         self.CAM_WIDTH = int(self.infoObject.current_w/2-100)

@@ -16,7 +16,7 @@ class GraphNode(object):
         Handles drawing itself to the screen as well as other related functions
     """
     def __init__(self, x=0.0, y=0.0, heading=pi/2.0):
-        super(GraphNode, self).__init__()
+        super().__init__()
 
         # Reference to parent GraphNode
         self.parent = None

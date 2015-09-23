@@ -27,7 +27,7 @@ from Colors import *
 class Background(GraphNode):
     """Probably be used for displaying a background image tile at some point"""
     def __init__(self, x=0, y=0, heading=0.0):
-        super(Background, self).__init__(x, y, heading)
+        super().__init__(x, y, heading)
 
     def draw(self, screen, camera):
         pass
@@ -37,7 +37,7 @@ class Polygon(GraphNode, PolygonCython):
     """docstring for Polygon"""
     def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
         self.shape = shape
-        super(Polygon, self).__init__(x, y, heading)
+        super().__init__(x, y, heading)
         self.color = color
         self.draw_width = draw_width
 
@@ -84,7 +84,7 @@ class Polygon(GraphNode, PolygonCython):
         return (-max_radius, -max_radius, max_radius * 2, max_radius * 2)
 
     def update_position(self):
-        super(Polygon, self).update_position()
+        super().update_position()
         # self.calc_shape_rotation()
 
     def calc_shape_rotation(self):
@@ -148,7 +148,7 @@ class Polygon(GraphNode, PolygonCython):
         
     def end_frame(self):
         self.shape_calculated = False
-        super(Polygon, self).end_frame()
+        super().end_frame()
 
 
 class Creature(Polygon):
@@ -162,7 +162,7 @@ class Creature(Polygon):
     MAX_LIVESPAN = 1000 * 60 * 3
 
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE, nn_weights=None):
-        super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+        super().__init__(self.BASE_SHAPE, x, y, heading, color)
 
         self.health = self.MAX_HEALTH
         self.nn = NeuralNetwork(5, 12, 5)
@@ -224,7 +224,7 @@ class Creature(Polygon):
         return stats
 
     # def draw(self, screen, camera):
-    #     super(Creature, self).draw(screen, camera)
+    #     super().draw(screen, camera)
     #     if self.selected:
     #         vision_cone = self.vision_cone
     #         self.vision_cone.draw(screen, camera)
@@ -259,7 +259,7 @@ class Food(Polygon):
     FOOD_VALUE = 30
 
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
-        super(Food, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+        super().__init__(self.BASE_SHAPE, x, y, heading, color)
         self.eaten = False
 
         self.food_value = self.FOOD_VALUE
@@ -282,7 +282,7 @@ class VisionCone(Polygon):
 
         scaled_centered_shape = [[xpos - x_mean, ypos - y_mean] for xpos, ypos, in scaled_shape]
 
-        super(VisionCone, self).__init__(scaled_centered_shape, x, y, heading, color, 1)
+        super().__init__(scaled_centered_shape, x, y, heading, color, 1)
 
     def on_collide_enter(self, other):
         # if other is a food, increment food counter
