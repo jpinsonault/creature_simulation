@@ -85,7 +85,7 @@ class Polygon(GraphNode, PolygonCython):
 
     def update_position(self):
         super().update_position()
-        # self.calc_shape_rotation()
+        self.calc_shape_rotation()
 
     def calc_shape_rotation(self):
         if not self.shape_calculated:
@@ -223,19 +223,19 @@ class Creature(Polygon):
 
         return stats
 
-    # def draw(self, screen, camera):
-    #     super().draw(screen, camera)
-    #     if self.selected:
-    #         vision_cone = self.vision_cone
-    #         self.vision_cone.draw(screen, camera)
-    #         # def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
-    #         x, y, w, h = vision_cone.get_bounds()
-    #         shape = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
-    #         onscreen_shape_coords = [camera.scale(point) for point in shape]
-    #         # draw.polygon(screen, WHITE, onscreen_shape_coords, 1)
-    #
-    #         for scene_object in self.vision_cone.current_collisions:
-    #             draw.circle(screen, RED, [int(num) for num in camera.scale(scene_object.absolute_position)], 50, 1)
+    def draw(self, screen, camera):
+        super(Creature, self).draw(screen, camera)
+        # if self.selected:
+        #     vision_cone = self.vision_cone
+        #     self.vision_cone.draw(screen, camera)
+        #     # def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
+        #     x, y, w, h = vision_cone.get_bounds()
+        #     shape = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
+        #     onscreen_shape_coords = [camera.scale(point) for point in shape]
+        #     # draw.polygon(screen, WHITE, onscreen_shape_coords, 1)
+        #
+        #     for scene_object in self.vision_cone.current_collisions:
+        #         draw.circle(screen, RED, [int(num) for num in camera.scale(scene_object.absolute_position)], 50, 1)
 
     def on_collide_enter(self, other):
         # if other is a food

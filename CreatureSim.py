@@ -130,7 +130,7 @@ class CreatureSim(PyGameBase):
             self.update_creature_positions()
             self.scene_graph.update()
 
-            self.quadtree.update_objects(self.creatures)
+            self.quadtree.update_objects(self.get_creatures())
 
             self.handle_collisions()
             self.do_obj_events()
@@ -165,12 +165,12 @@ class CreatureSim(PyGameBase):
             self.scene.remove_child(obj)
             self.quadtree.remove(obj)
 
-        for creature in self.creatures:
+        for creature in self.get_creatures():
             if creature.health <= 0:
                 if creature.selected:
                     self.unfollow_creature()
                 remove_obj(creature)
-                self.creatures.remove(creature)
+                self.entities.remove(creature)
 
                 self._breed_creature()
 
@@ -217,7 +217,7 @@ class CreatureSim(PyGameBase):
         self.quadtree.insert(food)
 
     def _breed_creature(self):
-        new_weights = self.breeder.breed(self.creatures)
+        new_weights = self.breeder.breed(list(self.get_creatures()))
 
         new_creature = Creature(
             x=randrange(*self.game_bounds),
@@ -231,9 +231,7 @@ class CreatureSim(PyGameBase):
 
     def handle_collisions(self):
         # Handle collisions for each creature's vision cone
-        for creature in (entity for entity
-                         in self.entities
-                         if issubclass(type(entity), Creature)):
+        for creature in self.get_creatures():
             # vision_cone = creature.vision_cone
 
             # Get rough idea of what things could be colliding
@@ -380,7 +378,7 @@ class CreatureSim(PyGameBase):
         self.toggle_follow_creature()
 
     def _find_best(self):
-        return max(self.creatures, key=lambda c: c.total_food_eaten)
+        return max(self.get_creatures(), key=lambda c: c.total_food_eaten)
 
     def select_creature(self, creature):
         self.selected_creature = creature
@@ -482,12 +480,14 @@ class CreatureSim(PyGameBase):
 
     def update_creature_positions(self):
         if not self.paused:
-            for creature in self.creatures:
+            for creature in self.get_creatures():
                 network = creature.nn
                 network.compute_network()
 
                 creature.rotate((self.dt * creature.rotation_speed) * self.game_speed)
                 creature.move_forward((self.dt * creature.speed) * self.game_speed)
+                creature.calc_absolute_position()
+
 
     def speedup_game(self):
         self.game_speed = min(self.MAX_GAME_SPEED, self.game_speed + self.GAME_SPEED_INCREMENT)
@@ -523,8 +523,10 @@ class CreatureSim(PyGameBase):
         else:
             self.creature_stats_textbox.clear()
 
-        creatures = [entity for entity in self.entities if issubclass(type(entity), Creature)]
-        stats = self.population_stats.update(creatures)
+        stats = self.population_stats.update(list(self.get_creatures()))
         self.population_stats_textbox.set(stats)
 
         ui.draw()
+
+    def get_creatures(self):
+        return (entity for entity in self.entities if issubclass(type(entity), Creature))

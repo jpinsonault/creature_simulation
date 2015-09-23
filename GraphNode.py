@@ -143,21 +143,14 @@ class GraphNode(object):
         self.position_changed = True
 
     def calc_absolute_position(self):
-        """Offsets and rotates our position and stores it in self.absolute_position"""
-        # Inlining it like this is ugly but faster
-        self.unrotated_position[0] = self.position[0]
-        self.unrotated_position[1] = self.position[1]
+        """
+            This function no longer rotates based off of a parent
+            That's handled in the SceneGraph.
 
-        parent = self.parent
-        if parent:
-            parent_position = parent.absolute_position
-            self.unrotated_position[0] += parent_position[0]
-            self.unrotated_position[1] += parent_position[1]
-            # Rotate around parent's absolute_position
-            self.absolute_position = rotate_around(parent.cos_radians, parent.sin_radians, self.unrotated_position, parent.absolute_position, parent.heading)
-        else:
-            self.absolute_position[0] = self.position[0]
-            self.absolute_position[1] = self.position[1]
+            This should be removed or something
+        """
+        self.absolute_position[0] = self.position[0]
+        self.absolute_position[1] = self.position[1]
 
     def has_moved(self):
         if self.position_changed:
