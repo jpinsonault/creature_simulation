@@ -14,9 +14,6 @@ class StatsTracker(object):
 			"average": 0,
 		}
 
-	def _top_percent(self, percent=0.1):
-		pass
-
 	def update(self, creatures):
 		self._clear_stats()
 		stats = self.stats

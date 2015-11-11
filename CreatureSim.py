@@ -6,7 +6,7 @@ from pygame.locals import *
 from collections import namedtuple
 
 # User made libraries
-from GameObjects import Background
+from GameObjects import Background, VisionCone
 from GameObjects import Creature
 from GameObjects import Food
 from Camera import Camera
@@ -130,7 +130,9 @@ class CreatureSim(PyGameBase):
             self.update_creature_positions()
             self.scene_graph.update()
 
-            self.quadtree.update_objects(self.get_creatures())
+            self.center_camera()
+
+            self.quadtree.update_objects(self.entities)
 
             self.handle_collisions()
             self.do_obj_events()
@@ -155,29 +157,32 @@ class CreatureSim(PyGameBase):
 
         pygame.display.flip()
 
+    def center_camera(self):
+        if self.selected_creature and self.follow_creature:
+            self.camera.position[0] = self.selected_creature.position[0]
+            self.camera.position[1] = self.selected_creature.position[1]
+
     def do_obj_events(self):
         if not self.paused:
             self.scene.handle_events(self.dt, self.game_speed)
             self.check_healths()
 
     def check_healths(self):
-        def remove_obj(obj):
-            self.scene.remove_child(obj)
-            self.quadtree.remove(obj)
-
         for creature in self.get_creatures():
             if creature.health <= 0:
                 if creature.selected:
                     self.unfollow_creature()
-                remove_obj(creature)
+                self.quadtree.remove(creature)
                 self.entities.remove(creature)
+                self.scene_graph.remove(creature)
 
                 self._breed_creature()
 
-        for food in self.foods:
+        for food in self.get_foods():
             if food.eaten == True:
-                remove_obj(food)
-                self.foods.remove(food)
+                self.quadtree.remove(food)
+                self.entities.remove(food)
+
                 self._insert_new_food()
 
     def _insert_new_creature(self):
@@ -187,6 +192,8 @@ class CreatureSim(PyGameBase):
             color=WHITE
         )
 
+        new_creature.vision_cone = VisionCone(parent=new_creature, x=265, color=RED)
+
         self._insert_creature(new_creature)
 
         return new_creature
@@ -195,6 +202,8 @@ class CreatureSim(PyGameBase):
         self.entities.append(creature)
 
         creature.calc_absolute_position()
+        self.scene_graph.add(creature)
+        self.scene_graph.add_to_parent(creature.vision_cone, creature, transformer=OldStyleTransformer)
 
         self.quadtree.insert(creature)
 
@@ -210,8 +219,7 @@ class CreatureSim(PyGameBase):
         return new_food
 
     def _insert_food(self, food):
-        self.foods.append(food)
-        self.scene_graph.add_to_parent(food, self.spinner, transformer=OldStyleTransformer)
+        self.entities.append(food)
         food.calc_absolute_position()
 
         self.quadtree.insert(food)
@@ -224,6 +232,8 @@ class CreatureSim(PyGameBase):
             y=randrange(*self.game_bounds),
             nn_weights=new_weights
         )
+
+        new_creature.vision_cone = VisionCone(parent=new_creature, x=265, color=RED)
 
         self._insert_creature(new_creature)
 
@@ -238,9 +248,9 @@ class CreatureSim(PyGameBase):
             first_pass = self.quadtree.get_objects_at_bounds(creature.get_bounds())
 
             if first_pass:
-                for scene_object in first_pass:
-                    # vision_cone.check_collision(scene_object)
-                    creature.check_collision(scene_object)
+                for entity in first_pass:
+                    # vision_cone.check_collision(entity)
+                    creature.check_collision(entity)
 
         self.scene.finish_collisions()
 
@@ -334,8 +344,8 @@ class CreatureSim(PyGameBase):
                 pickle.dump(items, f)
         # dump the creatures and food stuffs
         # let's get all the creatures first
-        x = self.creatures
-        y = self.foods
+        x = list(self.get_creatures())
+        y = list(self.get_foods())
         export_items([x, y])
 
         self.ui.toast("Saved Simulation")
@@ -356,17 +366,8 @@ class CreatureSim(PyGameBase):
         if self.selected_creature:
             self.follow_creature = not self.follow_creature
 
-            if self.follow_creature:
-                self.attach_camera_to(self.selected_creature)
-            else:
-                self.detach_camera_from(self.selected_creature)
-
     def unfollow_creature(self):
-        if self.selected_creature:
-            if self.follow_creature:
-                self.detach_camera_from(self.selected_creature)
-
-            self.follow_creature = False
+        self.follow_creature = False
 
     def select_best(self):
         self.unselect_creature()
@@ -382,26 +383,15 @@ class CreatureSim(PyGameBase):
 
     def select_creature(self, creature):
         self.selected_creature = creature
-
         creature.selected = True
-        creature.vision_cone.visible = True
 
     def unselect_creature(self):
         if self.selected_creature:
             self.selected_creature.selected = False
-            self.selected_creature.vision_cone.visible = False
 
             self.selected_creature = None
 
             self.unfollow_creature()
-
-    def attach_camera_to(self, scene_object):
-        self.camera.set_position([0, 0])
-        self.camera.reparent_to(scene_object)
-
-    def detach_camera_from(self, scene_object):
-        self.camera.reparent_to(self.scene)
-        self.camera.set_position(scene_object.get_absolute_position())
 
     def handle_click(self):
         self.mouse_screen_position = pygame.mouse.get_pos()
@@ -414,9 +404,6 @@ class CreatureSim(PyGameBase):
             if issubclass(type(hit), Creature):
                 self.unselect_creature()
                 self.select_creature(hit)
-
-                if self.follow_creature:
-                    self.attach_camera_to(hit)
 
     def _reload_init(self):
         self.scene = Background()
@@ -444,8 +431,6 @@ class CreatureSim(PyGameBase):
 
     def load(self, creatures=None, foods=None):
         """Sets up various game world objects"""
-        self.creatures = []
-        self.foods = []
         self.entities = []
         self.scene_graph = SceneGraph()
         self.scene_graph.add(self.spinner)
@@ -464,13 +449,11 @@ class CreatureSim(PyGameBase):
             for x in range(self.num_of_food):
                 self._insert_new_food()
 
-        self.camera.reparent_to(self.scene)
-
         # Setup text boxes
         self.speed_textbox = TextBox("", (10, self.CAM_HEIGHT - 40))
         self.creature_stats_textbox = MultilineTextBox([""], (10, 10))
         self.population_stats_textbox = MultilineTextBox([""], (self.CAM_WIDTH-300, 10))
-        num_creatures_text = "{} Creatures, {} Food".format(len(self.creatures), len(self.foods))
+        num_creatures_text = "{} Creatures, {} Food".format(self.num_of_creatures, self.num_of_food)
         self.num_creatures_textbox = TextBox(num_creatures_text, (10, self.CAM_HEIGHT - 70))
 
         self.ui.add(self.speed_textbox)
@@ -486,7 +469,9 @@ class CreatureSim(PyGameBase):
 
                 creature.rotate((self.dt * creature.rotation_speed) * self.game_speed)
                 creature.move_forward((self.dt * creature.speed) * self.game_speed)
-                creature.calc_absolute_position()
+
+                creature.do_everyframe_action(self.dt, self.game_speed)
+                creature.update_position()
 
 
     def speedup_game(self):
@@ -530,3 +515,6 @@ class CreatureSim(PyGameBase):
 
     def get_creatures(self):
         return (entity for entity in self.entities if issubclass(type(entity), Creature))
+
+    def get_foods(self):
+        return (entity for entity in self.entities if issubclass(type(entity), Food))

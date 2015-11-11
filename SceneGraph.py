@@ -37,9 +37,9 @@ class SceneGraph(object):
             Recursively search scene graph for node containing 'parent'
             Add entity to parent
         """
-        parent = self._find_node_by_entity(parent, self.nodes)
+        parent = self.find_node_by_entity(parent, self.nodes)
         if not parent:
-            raise Exception("Parent node couldn't be found!")
+            raise Exception("Node for parent entity '{}' couldn't be found!".format(entity))
 
         parent.add_child_entity(entity, transformer)
 
@@ -47,18 +47,37 @@ class SceneGraph(object):
         for node in self.nodes:
             node.update()
 
-
-
-    def _find_node_by_entity(self, entity, root_nodes):
+    def find_node_by_entity(self, entity, root_nodes=None):
         """Recursively search scene graph for node containing entity"""
+        if root_nodes is None:
+            root_nodes = self.nodes
+
+        if len(root_nodes) == 0:
+            return None
         for node in root_nodes:
             if node.entity == entity:
                 return node
-            elif len(node.children) == 0:
-                return None
-            else:
-                return self._find_node_by_entity(entity, node.children)
+            child_search = self.find_node_by_entity(entity, node.children)
 
+            if child_search:
+                return child_search
+
+        return None
+
+    def remove(self, entity):
+        """Find the node and remove it from it's parent if it has one"""
+        node = self.find_node_by_entity(entity, self.nodes)
+
+        if not node:
+            raise Exception("Node for entity '{}' couldn't be found!".format(entity))
+
+        if node.parent:
+            node.parent.remove_child_entity(entity)
+        else:
+            self.nodes.remove(node)
+
+    def __contains__(self, entity):
+        return self.find_node_by_entity(entity, self.nodes) is not None
 
 
 class GraphNode(object):
@@ -82,3 +101,14 @@ class GraphNode(object):
     def add_child_entity(self, child_entity, transformer=NoopTransformer):
         new_node = GraphNode(child_entity, parent=self, transformer=transformer)
         self.children.append(new_node)
+
+    def find_child_by_entity(self, entity):
+        """Find the first child GraphNode which contains entity, or return None"""
+        return next((child for child in self.children if child.entity == entity), None)
+
+    def remove_child_entity(self, child_entity):
+        found_node = self.find_child_by_entity(child_entity)
+        if found_node:
+            self.children.remove(found_node)
+        else:
+            raise Exception("Child node for entity '{}' couldn't be found!".format(child_entity))

@@ -24,9 +24,6 @@ class GraphNode(object):
         self.position = [x, y]
         self.heading = heading
 
-        # Will draw to the screen if visible
-        self.visible = True
-
         self.children = []
 
         # Hold values for the absolute position
@@ -72,40 +69,16 @@ class GraphNode(object):
     def end_frame(self):
         for child in self.children:
             child.end_frame()
-        
-    def reparent_to(self, new_parent):
-        if self.parent:
-            self.parent.remove_child(self)
-        self.parent = new_parent
-        self.parent.add_child(self)
-
-    def add_child(self, new_child):
-        if not issubclass(type(new_child), GraphNode):
-            raise Exception("Child must subclass GraphNode")
-        self.children.append(new_child)
-
-    def remove_child(self, child):
-        if not issubclass(type(child), GraphNode):
-            raise Exception("Child must subclass GraphNode")
-        if child in self.children:
-            self.children.remove(child)
-        for child_node in self.children:
-            child_node.remove_child(child)
 
     def update_position(self):
         """Updates the absolute_positions of this object and it's children"""
         if self.has_moved():
             self.calc_absolute_position()
-        self.update_children()
         self.position_changed = False
 
     def draw(self, screen, camera):
         """Abtract method"""
         pass
-
-    def update_children(self):
-        for child in self.children:
-            child.update_position()
 
     def move_forward(self, x_change=0, y_change=0):
         self.position[0] += x_change
@@ -175,7 +148,7 @@ class GraphNode(object):
     def on_collide(self, other):
         """Should be called any frame that there is a collision"""
 
-        # Checkts to see if this is the first collision event recieved this frame
+        # Checks to see if this is the first collision event recieved this frame
         if not self.in_collision_phase:
             self.previous_collisions = self.current_collisions.copy()
             self.current_collisions = set()
