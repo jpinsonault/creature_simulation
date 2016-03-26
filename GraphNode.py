@@ -24,8 +24,6 @@ class GraphNode(object):
         self.position = [x, y]
         self.heading = heading
 
-        self.children = []
-
         # Hold values for the absolute position
         self.absolute_position = [0.0, 0.0]
         self.unrotated_position = [0.0, 0.0]
@@ -43,22 +41,8 @@ class GraphNode(object):
         self.previous_collisions = set()
         self.in_collision_phase = False
 
-        # Events to do 
-        self.events = []
-
     def __repr__(self):
         return "{} at {}, {}".format(self.__class__.__name__, round(self.position[0], 0), round(self.position[1], 0))
-
-    def add_event(self, function, params):
-        self.events.append(Event(function, params))
-
-    def handle_events(self, time_dt, game_speed):
-        for function, parameters in self.events:
-            function(parameters)
-        for child in self.children:
-            child.handle_events(time_dt, game_speed)
-
-        self.do_everyframe_action(time_dt, game_speed)
 
     def do_everyframe_action(self, time_dt, game_speed):
         pass
@@ -67,8 +51,7 @@ class GraphNode(object):
         pass
 
     def end_frame(self):
-        for child in self.children:
-            child.end_frame()
+        pass
 
     def update_position(self):
         """Updates the absolute_positions of this object and it's children"""
@@ -171,9 +154,6 @@ class GraphNode(object):
                 self.on_collide_exit(scene_object)
 
         self.in_collision_phase = False
-
-        for child in self.children:
-            child.finish_collisions()
 
     def on_collide_enter(self, other):
         """

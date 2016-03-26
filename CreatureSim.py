@@ -55,7 +55,7 @@ class CreatureSim(PyGameBase):
     CAMERA_MOVE_SPEED = .5
 
     GAME_SPEED_INCREMENT = .1
-    MAX_GAME_SPEED = 2
+    MAX_GAME_SPEED = 2.0
     MIN_GAME_SPEED = .1
     WORLD_WIDTH = 100000
     WORLD_HEIGHT = 100000
@@ -65,7 +65,7 @@ class CreatureSim(PyGameBase):
         super().__init__()
         self.infoObject = pygame.display.Info()
         self.CAM_HEIGHT = self.infoObject.current_h - 80
-        self.CAM_WIDTH = int(self.infoObject.current_w/2-100)
+        self.CAM_WIDTH = int(self.infoObject.current_w-100)
         self.num_of_creatures = 180
         self.num_of_food = 100
         self.game_bounds = (-5000, 5000)
@@ -73,7 +73,6 @@ class CreatureSim(PyGameBase):
         self.running = True
         # self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=-(self.CAM_WIDTH / 2), y=-(self.CAM_HEIGHT / 2))
         self.camera = Camera(self.CAM_WIDTH, self.CAM_HEIGHT, x=0, y=0, zoom=1.0)
-        self.scene = Background()
         self.screen = pygame.display.set_mode((self.CAM_WIDTH, self.CAM_HEIGHT))
 
         self.fullscreen = False
@@ -127,6 +126,7 @@ class CreatureSim(PyGameBase):
             self.handle_events()
             self.handle_key_presses()
 
+            self.handle_vision()
             self.update_creature_positions()
             self.scene_graph.update()
 
@@ -153,8 +153,6 @@ class CreatureSim(PyGameBase):
 
         self.draw_ui()
 
-        self.scene.end_frame()
-
         pygame.display.flip()
 
     def center_camera(self):
@@ -164,18 +162,21 @@ class CreatureSim(PyGameBase):
 
     def do_obj_events(self):
         if not self.paused:
-            self.scene.handle_events(self.dt, self.game_speed)
             self.check_healths()
+
+    def remove_creature(self, creature):
+        if creature.selected:
+            self.unfollow_creature()
+
+        self.quadtree.remove(creature)
+        self.entities.remove(creature)
+        self.entities.remove(creature.vision_cone)
+        self.scene_graph.remove(creature)
 
     def check_healths(self):
         for creature in self.get_creatures():
             if creature.health <= 0:
-                if creature.selected:
-                    self.unfollow_creature()
-                self.quadtree.remove(creature)
-                self.entities.remove(creature)
-                self.scene_graph.remove(creature)
-
+                self.remove_creature(creature)
                 self._breed_creature()
 
         for food in self.get_foods():
@@ -193,6 +194,7 @@ class CreatureSim(PyGameBase):
         )
 
         new_creature.vision_cone = VisionCone(parent=new_creature, x=265, color=RED)
+        self.entities.append(new_creature.vision_cone)
 
         self._insert_creature(new_creature)
 
@@ -234,25 +236,29 @@ class CreatureSim(PyGameBase):
         )
 
         new_creature.vision_cone = VisionCone(parent=new_creature, x=265, color=RED)
+        self.entities.append(new_creature.vision_cone)
 
         self._insert_creature(new_creature)
 
         return new_creature
 
+    def handle_vision(self):
+        pass
+
     def handle_collisions(self):
         # Handle collisions for each creature's vision cone
         for creature in self.get_creatures():
-            # vision_cone = creature.vision_cone
 
             # Get rough idea of what things could be colliding
             first_pass = self.quadtree.get_objects_at_bounds(creature.get_bounds())
 
             if first_pass:
                 for entity in first_pass:
-                    # vision_cone.check_collision(entity)
+                    creature.vision_cone.check_collision(entity)
                     creature.check_collision(entity)
 
-        self.scene.finish_collisions()
+        for entity in self.entities:
+            entity.finish_collisions()
 
     def handle_key_presses(self):
         # Camera Zoom
@@ -406,7 +412,6 @@ class CreatureSim(PyGameBase):
                 self.select_creature(hit)
 
     def _reload_init(self):
-        self.scene = Background()
         self.quadtree = QuadTree(
             bounds=(
                 -self.WORLD_WIDTH/2,
@@ -499,7 +504,7 @@ class CreatureSim(PyGameBase):
         if self.paused:
             speed_text = "Speed: Paused"
         else:
-            speed_text = "Speed: {}x".format(self.game_speed)
+            speed_text = "Speed: {:.2}x".format(self.game_speed)
 
         self.speed_textbox.set(speed_text)
 

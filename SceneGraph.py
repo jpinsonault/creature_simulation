@@ -1,5 +1,7 @@
 from PygameUtils import rotate_around
 
+# A transformer is simply a function that takes in an entity and its parent,
+# and modifies the child in some way
 
 def NoopTransformer(*args, **kwargs):
     """Doesn't do anything"""

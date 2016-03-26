@@ -164,7 +164,8 @@ class Creature(Polygon):
         else:
             self.nn.set_network(nn_weights)
 
-        self.unrotated_position = self.position
+        self.unrotated_position[0] = self.position[0]
+        self.unrotated_position[1] = self.position[1]
 
         # Add a vision code to the creature
         # Offset in the x direction, otherwise it would be centered over the creature
@@ -215,6 +216,7 @@ class Creature(Polygon):
         stats.append("Food seen: {}".format(self.food_seen))
         stats.append("Health: {:.2f}".format(self.health))
         stats.append("Food Eaten: {}".format(self.total_food_eaten))
+        stats.append("Vision cone: {}, {}".format(self.vision_cone.absolute_shape, self.vision_cone.heading))
 
         return stats
 
@@ -261,7 +263,8 @@ class Food(Polygon):
 
         self.food_value = self.FOOD_VALUE
         self.absolute_position = [x, y]
-        self.unrotated_position = self.position
+        self.unrotated_position[0] = self.position[0]
+        self.unrotated_position[1] = self.position[1]
         self.calc_shape_rotation()
 
 
