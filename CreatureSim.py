@@ -126,7 +126,6 @@ class CreatureSim(PyGameBase):
             self.handle_events()
             self.handle_key_presses()
 
-            self.handle_vision()
             self.update_creature_positions()
             self.scene_graph.update()
 
@@ -241,9 +240,6 @@ class CreatureSim(PyGameBase):
         self._insert_creature(new_creature)
 
         return new_creature
-
-    def handle_vision(self):
-        pass
 
     def handle_collisions(self):
         # Handle collisions for each creature's vision cone
