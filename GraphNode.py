@@ -27,8 +27,6 @@ class GraphNode(object):
         # Hold values for the absolute position
         self.absolute_position = [0.0, 0.0]
         self.unrotated_position = [0.0, 0.0]
-        # Position changed is true if this or parents have moved since last frame
-        self.position_changed = True
 
         # sin and cos of the heading will be cached so children don't have to recalculate
         self.cos_radians = cos(self.heading)
@@ -54,10 +52,8 @@ class GraphNode(object):
         pass
 
     def update_position(self):
-        """Updates the absolute_positions of this object and it's children"""
-        if self.has_moved():
-            self.calc_absolute_position()
-        self.position_changed = False
+        """Updates the absolute_positions of this object"""
+        self.calc_absolute_position()
 
     def draw(self, screen, camera):
         """Abtract method"""
@@ -107,15 +103,6 @@ class GraphNode(object):
         """
         self.absolute_position[0] = self.position[0]
         self.absolute_position[1] = self.position[1]
-
-    def has_moved(self):
-        if self.position_changed:
-            return True
-        if self.parent:
-            self.position_changed |= self.parent.has_moved()
-            return self.position_changed
-        else:
-            return False
 
     def get_bounds(self):
         return (self.absolute_position[0], self.absolute_position[1], 1, 1)

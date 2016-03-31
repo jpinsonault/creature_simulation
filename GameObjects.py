@@ -89,7 +89,7 @@ class Polygon(GraphNode, PolygonCython):
 
     def calc_shape_rotation(self):
         # Offset the shape coords by our absolute_position
-        offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]]
+        offset_unrotated_shape = [[point[0] + self.position[0], point[1] + self.position[1]]
                                     for point in self.shape]
 
         self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, offset_unrotated_shape, self.absolute_position, self.heading)
