@@ -5,7 +5,7 @@ from time import time
 class TextBox(object):
     """Responsible for single line text boxes"""
     def __init__(self, text, position, size=22, color=WHITE, bold=False, italic=False, typeface="monospace"):
-        super(TextBox, self).__init__()
+        super().__init__()
         self.text = text
         self.position = position
         self.size = size
@@ -39,7 +39,7 @@ class MultilineTextBox(TextBox):
     """Takes a list of strings and draws them with spacing between each line"""
     def __init__(self, text, position, size=22, color=WHITE, bold=False, italic=False, typeface="monospace"):
         self.labels = None
-        super(MultilineTextBox, self).__init__(text, position, size, color, bold, italic, typeface)
+        super().__init__(text, position, size, color, bold, italic, typeface)
 
     def make_label(self):
         x, y = self.position
@@ -60,7 +60,7 @@ class MultilineTextBox(TextBox):
 class Toast(object):
     """A temporary string that goes away"""
     def __init__(self, message, timeout=1.0, textbox=None):
-        super(Toast, self).__init__()
+        super().__init__()
         self.message = message
         self.timeout = timeout
 
@@ -81,7 +81,7 @@ class Toast(object):
 class UserInterface(object):
     """Handles drawing text on the screen each frame"""
     def __init__(self, screen):
-        super(UserInterface, self).__init__()
+        super().__init__()
         self.screen = screen
 
         self.elements = []

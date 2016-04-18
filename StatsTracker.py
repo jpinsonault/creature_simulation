@@ -4,7 +4,7 @@ from collections import defaultdict
 class StatsTracker(object):
 	"""Keeps track of the population statistics"""
 	def __init__(self):
-		super(StatsTracker, self).__init__()
+		super().__init__()
 
 		self.distribution = defaultdict(int)
 
@@ -13,9 +13,6 @@ class StatsTracker(object):
 			"all_time_best": 0,
 			"average": 0,
 		}
-
-	def _top_percent(self, percent=0.1):
-		pass
 
 	def update(self, creatures):
 		self._clear_stats()

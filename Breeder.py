@@ -13,7 +13,7 @@ class Breeder(object):
     MUTATION_CHANCE = 10
 
     def __init__(self, tournament_size=3):
-        super(Breeder, self).__init__()
+        super().__init__()
         self.tournament_size = tournament_size
 
     def breed(self, creatures):

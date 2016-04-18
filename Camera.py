@@ -11,7 +11,7 @@ class Camera(GraphNode):
     MAX_ZOOM = 40.0
 
     def __init__(self, width, height, x=0, y=0, zoom = 1.0, zoom_speed = 0.001):
-        super(Camera, self).__init__(x=x, y=y)
+        super().__init__(x=x, y=y)
 
         self.width = width
         self.height = height
@@ -36,14 +36,14 @@ class Camera(GraphNode):
 
     def scale(self, point):
         """Scales a coordinate from the virtual world to the screen"""
-        x = (point[0] - self.absolute_position[0]) / self.zoom + self.width / 2
-        y = (point[1] - self.absolute_position[1]) / self.zoom + self.height / 2
+        x = (point[0] - self.position[0]) / self.zoom + self.width / 2
+        y = (point[1] - self.position[1]) / self.zoom + self.height / 2
         return [x, y]
 
     def scale_rect(self, rect):
         """Scales a coordinate from the virtual world to the screen"""
-        x = (rect[0] - self.absolute_position[0]) / self.zoom + self.width / 2
-        y = (rect[1] - self.absolute_position[1]) / self.zoom + self.height / 2
+        x = (rect[0] - self.position[0]) / self.zoom + self.width / 2
+        y = (rect[1] - self.position[1]) / self.zoom + self.height / 2
         width = rect[2] / self.zoom
         height = rect[3] / self.zoom
         scaled = (x, y, width, height)
@@ -57,8 +57,8 @@ class Camera(GraphNode):
             screen_coord[0] < self.width and screen_coord[1] < self.height)
 
     def get_bounds(self):
-        x = self.absolute_position[0] - ((self.width / 2) * self.zoom)
-        y = self.absolute_position[1] - ((self.height / 2) * self.zoom)
+        x = self.position[0] - ((self.width / 2) * self.zoom)
+        y = self.position[1] - ((self.height / 2) * self.zoom)
 
         width = self.width * self.zoom
         height = self.height * self.zoom
@@ -67,7 +67,7 @@ class Camera(GraphNode):
 
     def real_position(self, point):
         """Converts a screen coordinate to the coordinate it hits in the game world"""
-        x = (point[0] - self.width/2) * self.zoom + self.absolute_position[0]
-        y = (point[1] - self.height/2) * self.zoom + self.absolute_position[1]
+        x = (point[0] - self.width/2) * self.zoom + self.position[0]
+        y = (point[1] - self.height/2) * self.zoom + self.position[1]
 
         return (x, y)

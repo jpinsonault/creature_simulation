@@ -4,7 +4,7 @@ import pygame
 
 class QuadTree(object):
     def __init__(self, bounds, depth=7, max_objects=2, object_map = None, parent=None):
-        super(QuadTree, self).__init__()
+        super().__init__()
         self.bounds = bounds
         self.depth = depth
         self.max_objects = max_objects
@@ -401,7 +401,7 @@ class QuadTree(object):
     def print_tree(self, depth=0):
         """Recursively print the tree"""
         def print_(depth, string):
-            print "{}{}".format('  ' * depth, string)
+            print("{}{}".format('  ' * depth, string))
 
         num_items = len(self.scene_objects)
         print_(depth, "Level {}: {} scene_objects".format(depth, num_items))

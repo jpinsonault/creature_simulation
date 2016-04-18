@@ -27,7 +27,7 @@ from Colors import *
 class Background(GraphNode):
     """Probably be used for displaying a background image tile at some point"""
     def __init__(self, x=0, y=0, heading=0.0):
-        super(Background, self).__init__(x, y, heading)
+        super().__init__(x, y, heading)
 
     def draw(self, screen, camera):
         pass
@@ -37,7 +37,7 @@ class Polygon(GraphNode, PolygonCython):
     """docstring for Polygon"""
     def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
         self.shape = shape
-        super(Polygon, self).__init__(x, y, heading)
+        super().__init__(x, y, heading)
         self.color = color
         self.draw_width = draw_width
 
@@ -84,22 +84,17 @@ class Polygon(GraphNode, PolygonCython):
         return (-max_radius, -max_radius, max_radius * 2, max_radius * 2)
 
     def update_position(self):
-        super(Polygon, self).update_position()
-        # self.calc_shape_rotation()
+        super().update_position()
+        self.calc_shape_rotation()
 
     def calc_shape_rotation(self):
-        if not self.shape_calculated:
-            # Offset the shape coords by our absolute_position
-            offset_unrotated_shape = [[point[0] + self.unrotated_position[0], point[1] + self.unrotated_position[1]]
-                                        for point in self.shape]
+        # Offset the shape coords by our absolute_position
+        offset_unrotated_shape = [[point[0] + self.position[0], point[1] + self.position[1]]
+                                    for point in self.shape]
 
-            # Rotate the shape around parent's center
-            parent = self.parent
-            if parent:
-                self.absolute_shape = rotate_shape(parent.cos_radians, parent.sin_radians, offset_unrotated_shape, parent.absolute_position, parent.heading)
-            self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, self.absolute_shape, self.absolute_position, self.heading)
+        self.absolute_shape = rotate_shape(self.cos_radians, self.sin_radians, offset_unrotated_shape, self.absolute_position, self.heading)
 
-            self.shape_calculated = True
+        self.shape_calculated = True
 
     def get_bounds(self):
         bounds = self.bounds
@@ -146,7 +141,7 @@ class Polygon(GraphNode, PolygonCython):
         
     def end_frame(self):
         self.shape_calculated = False
-        super(Polygon, self).end_frame()
+        super().end_frame()
 
 
 class Creature(Polygon):
@@ -160,7 +155,7 @@ class Creature(Polygon):
     MAX_LIVESPAN = 1000 * 60 * 3
 
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE, nn_weights=None):
-        super(Creature, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+        super().__init__(self.BASE_SHAPE, x, y, heading, color)
 
         self.health = self.MAX_HEALTH
         self.nn = NeuralNetwork(5, 12, 5)
@@ -169,11 +164,14 @@ class Creature(Polygon):
         else:
             self.nn.set_network(nn_weights)
 
+        self.unrotated_position[0] = self.position[0]
+        self.unrotated_position[1] = self.position[1]
+
         # Add a vision code to the creature
         # Offset in the x direction, otherwise it would be centered over the creature
-        self.vision_cone = VisionCone(x=265, color=RED)
-        self.vision_cone.visible = False
-        self.vision_cone.reparent_to(self)
+        # self.vision_cone = VisionCone(x=265, color=RED)
+        # self.vision_cone.visible = False
+        # self.vision_cone.reparent_to(self)
 
         self.speed = 0
         self.rotation_speed = 0
@@ -218,22 +216,25 @@ class Creature(Polygon):
         stats.append("Food seen: {}".format(self.food_seen))
         stats.append("Health: {:.2f}".format(self.health))
         stats.append("Food Eaten: {}".format(self.total_food_eaten))
+        stats.append("Vision cone: {}, {}".format(self.vision_cone.absolute_shape, self.vision_cone.heading))
 
         return stats
 
     def draw(self, screen, camera):
         super(Creature, self).draw(screen, camera)
-        if self.selected:
-            vision_cone = self.vision_cone
+        if hasattr(self, "vision_cone"):
             self.vision_cone.draw(screen, camera)
-            # def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
-            x, y, w, h = vision_cone.get_bounds()
-            shape = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
-            onscreen_shape_coords = [camera.scale(point) for point in shape]
-            # draw.polygon(screen, WHITE, onscreen_shape_coords, 1)
-
-            for scene_object in self.vision_cone.current_collisions:
-                draw.circle(screen, RED, [int(num) for num in camera.scale(scene_object.absolute_position)], 50, 1)
+        # if self.selected:
+        #     vision_cone = self.vision_cone
+        #     self.vision_cone.draw(screen, camera)
+        #     # def __init__(self, shape, x=0, y=0, heading=0.0, color=WHITE, draw_width=0):
+        #     x, y, w, h = vision_cone.get_bounds()
+        #     shape = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
+        #     onscreen_shape_coords = [camera.scale(point) for point in shape]
+        #     # draw.polygon(screen, WHITE, onscreen_shape_coords, 1)
+        #
+        #     for scene_object in self.vision_cone.current_collisions:
+        #         draw.circle(screen, RED, [int(num) for num in camera.scale(scene_object.absolute_position)], 50, 1)
 
     def on_collide_enter(self, other):
         # if other is a food
@@ -257,10 +258,14 @@ class Food(Polygon):
     FOOD_VALUE = 30
 
     def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
-        super(Food, self).__init__(self.BASE_SHAPE, x, y, heading, color)
+        super().__init__(self.BASE_SHAPE, x, y, heading, color)
         self.eaten = False
 
         self.food_value = self.FOOD_VALUE
+        self.absolute_position = [x, y]
+        self.unrotated_position[0] = self.position[0]
+        self.unrotated_position[1] = self.position[1]
+        self.calc_shape_rotation()
 
 
 class VisionCone(Polygon):
@@ -269,7 +274,7 @@ class VisionCone(Polygon):
     """
     BASE_SHAPE = [[-10, 0], [30, -15], [30, 15]]
 
-    def __init__(self, x=0, y=0, heading=0.0, color=WHITE):
+    def __init__(self, parent, x=0, y=0, heading=0.0, color=WHITE):
         factor = 10
         
         # Scale the shape according to 'factor'
@@ -280,7 +285,8 @@ class VisionCone(Polygon):
 
         scaled_centered_shape = [[xpos - x_mean, ypos - y_mean] for xpos, ypos, in scaled_shape]
 
-        super(VisionCone, self).__init__(scaled_centered_shape, x, y, heading, color, 1)
+        super().__init__(scaled_centered_shape, x, y, heading, color, 1)
+        self.parent = parent
 
     def on_collide_enter(self, other):
         # if other is a food, increment food counter
@@ -291,5 +297,9 @@ class VisionCone(Polygon):
         # if other is a food, decrement food counter
         if isinstance(other, Food):
             self.parent.food_seen -= 1
+
+    def draw(self, screen, camera):
+        self.calc_shape_rotation()
+        super().draw(screen, camera)
 
 
