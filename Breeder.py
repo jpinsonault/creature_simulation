@@ -1,5 +1,3 @@
-import sys
-sys.path.insert(0, '../')
 from NeuralNetwork import _random_weight
 import random
 from random import randint
@@ -43,7 +41,7 @@ class Breeder(object):
 
         # Recombine NN weights
         split_index = randint(0, len(first_weights))
-        new_weights = first_weights[0:split_index] + second_weights[split_index:]
+        new_weights = first_weights[:split_index] + second_weights[split_index:]
 
         return new_weights
         
